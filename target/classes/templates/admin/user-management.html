@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>User Management</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Inter", "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    h2 {
+      text-align: center;
+      color: #1a202c;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    a.btn {
+      display: inline-block;
+      margin-bottom: 20px;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    a.btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      background: linear-gradient(45deg, #5a67d8, #6b46c1);
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 14px;
+    }
+
+    th {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: none;
+    }
+
+    tbody tr {
+      transition: all 0.3s ease;
+    }
+
+    tbody tr:hover {
+      background: linear-gradient(45deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+      transform: scale(1.01);
+    }
+
+    .btn-toggle {
+      padding: 8px 16px;
+      margin: 2px;
+      border-radius: 8px;
+      font-weight: 500;
+      text-decoration: none;
+      font-size: 13px;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .active {
+      background: linear-gradient(45deg, #48bb78, #38a169);
+      color: white;
+      box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+    }
+
+    .active:hover {
+      background: linear-gradient(45deg, #38a169, #2f855a);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+    }
+
+    .inactive {
+      background: linear-gradient(45deg, #f56565, #e53e3e);
+      color: white;
+      box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
+    }
+
+    .inactive:hover {
+      background: linear-gradient(45deg, #e53e3e, #c53030);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+    }
+
+    .center-button {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .badge {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-verified {
+      background: linear-gradient(45deg, #c6f6d5, #9ae6b4);
+      color: #22543d;
+      box-shadow: 0 2px 8px rgba(56, 161, 105, 0.2);
+    }
+
+    .badge-rejected {
+      background: linear-gradient(45deg, #fed7d7, #feb2b2);
+      color: #742a2a;
+      box-shadow: 0 2px 8px rgba(229, 62, 62, 0.2);
+    }
+
+    .badge-pending {
+      background: linear-gradient(45deg, #fefcbf, #faf089);
+      color: #744210;
+      box-shadow: 0 2px 8px rgba(237, 137, 54, 0.2);
+    }
+
+    .kyc-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-verify, .btn-reject {
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-verify {
+      background: linear-gradient(45deg, #38a169, #48bb78);
+      color: white;
+    }
+
+    .btn-verify:hover {
+      background: linear-gradient(45deg, #2f855a, #38a169);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+    }
+
+    .btn-reject {
+      background: linear-gradient(45deg, #e53e3e, #f56565);
+      color: white;
+    }
+
+    .btn-reject:hover {
+      background: linear-gradient(45deg, #c53030, #e53e3e);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+    }
+
+    .no-actions {
+      font-weight: 500;
+      color: #718096;
+      font-style: italic;
+    }
+
+    .status-cell {
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .active-yes {
+      color: #38a169;
+    }
+
+    .active-no {
+      color: #e53e3e;
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        padding: 20px;
+        margin: 10px;
+      }
+
+      h2 {
+        font-size: 2rem;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 12px 8px;
+      }
+
+      .kyc-actions {
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .btn-verify, .btn-reject {
+        padding: 6px 12px;
+        font-size: 11px;
+      }
+
+      .btn-toggle {
+        padding: 6px 12px;
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .table-container {
+        overflow-x: auto;
+      }
+
+      table {
+        min-width: 800px;
+      }
+    }
+
+    /* Smooth scrolling for better UX */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(45deg, #5a67d8, #6b46c1);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>👥 User Management</h2>
+
+  <a href="/admin/users/create" class="btn">➕ Create New User</a>
+
+  <div class="table-container">
+    <table>
+      <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Active</th>
+        <th>Toggle</th>
+        <th>KYC Status</th>
+        <th>KYC Actions</th>
+
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="user : ${users}">
+        <td th:text="${user.name}">Name</td>
+        <td th:text="${user.email}">Email</td>
+        <td th:text="${user.role}">Role</td>
+        <td class="status-cell"
+            th:classappend="${user.isActive.equalsIgnoreCase('Y') ? 'active-yes' : 'active-no'}"
+            th:text="${user.isActive.equalsIgnoreCase('Y') ? 'Yes' : 'No'}">Active</td>
+        <td>
+          <a th:href="@{/admin/users/toggle/{id}(id=${user.userId})}"
+             th:text="${user.isActive.equalsIgnoreCase('Y') ? 'Deactivate' : 'Activate'}"
+             th:class="${user.isActive.equalsIgnoreCase('Y') ? 'btn-toggle inactive' : 'btn-toggle active'}">
+          </a>
+        </td>
+        <td>
+          <span th:class="${user.kycStatus == 'VERIFIED' ? 'badge badge-verified' :
+                           user.kycStatus == 'REJECTED' ? 'badge badge-rejected' :
+                           'badge badge-pending'}"
+                th:text="${user.kycStatus != null ? user.kycStatus : 'PENDING'}">PENDING</span>
+        </td>
+        <td>
+          <th:block th:if="${user.kycStatus != null and user.kycStatus.equalsIgnoreCase('PENDING')}">
+            <form th:action="@{/admin/kyc/{userId}(userId=${user.userId})}" method="post" class="kyc-actions">
+              <button type="submit" name="status" value="VERIFIED" class="btn-verify">✅ Verify</button>
+              <button type="submit" name="status" value="REJECTED" class="btn-reject">❌ Reject</button>
+            </form>
+          </th:block>
+          <th:block th:unless="${user.kycStatus != null and user.kycStatus.equalsIgnoreCase('PENDING')}">
+            <span class="no-actions">No actions available</span>
+          </th:block>
+        </td>
+
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="center-button">
+    <a href="/admin/dashboard" class="btn">⬅ Go Back to Dashboard</a>
+  </div>
+</div>
+
+</body>
+</html>

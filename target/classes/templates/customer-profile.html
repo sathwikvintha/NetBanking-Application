@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Your Profile</title>
+</head>
+<body>
+<h2>👤 Your Profile</h2>
+<table>
+    <tr><td>Name:</td><td th:text="${user.name}">John Doe</td></tr>
+    <tr><td>Username:</td><td th:text="${user.username}">jdoe</td></tr>
+    <tr><td>Email:</td><td th:text="${user.email}">john@example.com</td></tr>
+    <tr><td>Phone:</td><td th:text="${user.phone}">1234567890</td></tr>
+    <tr><td>Role:</td><td th:text="${user.role}">CUSTOMER</td></tr>
+    <tr><td>KYC Status:</td><td th:text="${user.kycStatus}">PENDING</td></tr>
+</table>
+
+<a href="/customer/profile/edit">✏️ Edit Profile</a>
+<a href="/customer/profile/password">🔒 Change Password</a>
+</body>
+</html>

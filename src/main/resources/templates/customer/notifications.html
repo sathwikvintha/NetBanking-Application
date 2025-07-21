@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Your Notifications</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #0055aa, #667eea, #0055aa);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    h2 {
+      color: #333;
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 30px;
+      text-align: center;
+      background: linear-gradient(135deg, #0055aa, #667eea);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      padding-bottom: 20px;
+    }
+
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, #0055aa, #667eea);
+      border-radius: 2px;
+    }
+
+    .notification-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 30px;
+    }
+
+    .notification-item {
+      background: #fff;
+      border: 1px solid rgba(0, 85, 170, 0.1);
+      border-left: 5px solid #0055aa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .notification-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(0, 85, 170, 0.02), rgba(102, 126, 234, 0.02));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .notification-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 85, 170, 0.15);
+      border-left-color: #667eea;
+    }
+
+    .notification-item:hover::before {
+      opacity: 1;
+    }
+
+    .notification-content {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #333;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .notification-meta {
+      font-size: 0.9em;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .notification-meta::before {
+      content: '⏰';
+      font-size: 14px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 30px;
+      text-decoration: none;
+      color: #0055aa;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      padding: 12px 20px;
+      border-radius: 8px;
+      background: rgba(0, 85, 170, 0.1);
+      border: 2px solid transparent;
+    }
+
+    .back-link:hover {
+      background: rgba(0, 85, 170, 0.2);
+      transform: translateX(-5px);
+      text-decoration: none;
+      border-color: rgba(0, 85, 170, 0.3);
+    }
+
+    .back-link::before {
+      content: '⬅';
+      margin-right: 8px;
+      font-size: 18px;
+      transition: transform 0.3s ease;
+    }
+
+    .back-link:hover::before {
+      transform: translateX(-3px);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    .empty-state-subtext {
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: linear-gradient(135deg, #ff4757, #ff3742);
+      color: white;
+      border-radius: 50%;
+      width: 12px;
+      height: 12px;
+      font-size: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .notification-item.unread {
+      border-left-color: #ff4757;
+      background: linear-gradient(135deg, rgba(255, 71, 87, 0.03), rgba(255, 255, 255, 1));
+    }
+
+    .notification-item.unread::after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 8px;
+      height: 8px;
+      background: #ff4757;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 10px;
+        padding: 20px;
+      }
+
+      h2 {
+        font-size: 1.8rem;
+      }
+
+      .notification-item {
+        padding: 15px;
+      }
+    }
+
+    /* Staggered animation for notifications */
+    .notification-item {
+      animation: slideInUp 0.6s ease forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .notification-item:nth-child(1) { animation-delay: 0.1s; }
+    .notification-item:nth-child(2) { animation-delay: 0.2s; }
+    .notification-item:nth-child(3) { animation-delay: 0.3s; }
+    .notification-item:nth-child(4) { animation-delay: 0.4s; }
+    .notification-item:nth-child(5) { animation-delay: 0.5s; }
+    .notification-item:nth-child(n+6) { animation-delay: 0.6s; }
+
+    @keyframes slideInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .notification-count {
+      display: inline-block;
+      background: linear-gradient(135deg, #0055aa, #667eea);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-left: 10px;
+      vertical-align: top;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>🔔 Your Notifications <span class="notification-count" th:text="${#lists.size(notifications)}">0</span></h2>
+
+  <ul class="notification-list" th:if="${notifications != null and !notifications.isEmpty()}">
+    <li th:each="n : ${notifications}" class="notification-item">
+      <div class="notification-content" th:text="${n.message}">Notification message</div>
+      <div class="notification-meta" th:text="${#temporals.format(n.sentAt, 'dd-MM-yyyy HH:mm')}">Date</div>
+    </li>
+  </ul>
+
+  <div class="empty-state" th:if="${notifications == null or notifications.isEmpty()}">
+    <div class="empty-state-icon">🔕</div>
+    <div class="empty-state-text">No notifications yet</div>
+    <div class="empty-state-subtext">You're all caught up! New notifications will appear here.</div>
+  </div>
+
+  <a class="back-link" href="/customer/dashboard">Back to Dashboard</a>
+</div>
+
+<script>
+  // Add read/unread functionality (visual only)
+  document.querySelectorAll('.notification-item').forEach((item, index) => {
+    // Randomly mark some as unread for demo purposes
+    if (Math.random() > 0.7) {
+      item.classList.add('unread');
+    }
+
+    // Mark as read when clicked
+    item.addEventListener('click', function() {
+      this.classList.remove('unread');
+    });
+  });
+
+  // Add smooth scrolling for better UX
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      document.querySelector(this.getAttribute('href')).scrollIntoView({
+        behavior: 'smooth'
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

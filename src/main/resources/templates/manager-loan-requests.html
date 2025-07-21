@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Pending Loan Requests</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<h2>📩 Pending Loan Requests</h2>
+<table>
+    <tr>
+        <th>Loan ID</th><th>Amount</th><th>Type</th><th>Status</th><th>Action</th>
+    </tr>
+    <tr th:each="loan : ${pendingLoans}">
+        <td th:text="${loan.loanId}"></td>
+        <td th:text="${loan.loanAmount}"></td>
+        <td th:text="${loan.loanType}"></td>
+        <td th:text="${loan.status}"></td>
+        <td>
+            <form th:action="@{/manager/approve-loan}" method="post">
+                <input type="hidden" name="loanId" th:value="${loan.loanId}"/>
+                <button type="submit">Approve</button>
+            </form>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Create Account</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: slideIn 0.6s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 30px;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .success-msg {
+      background: linear-gradient(135deg, #d4edda, #c3e6cb);
+      color: #155724;
+      padding: 15px 20px;
+      margin-bottom: 25px;
+      border: 1px solid #c3e6cb;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(21, 87, 36, 0.1);
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .success-msg::before {
+      content: '\f00c';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      color: #28a745;
+      font-size: 1.2em;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    form {
+      display: grid;
+      gap: 25px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label::before {
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      color: #667eea;
+      font-size: 1em;
+    }
+
+    label[for="userId"]::before { content: '\f007'; }
+    label[for="accountType"]::before { content: '\f02d'; }
+    label[for="initialBalance"]::before { content: '\f155'; }
+    label[for="interestRate"]::before { content: '\f295'; }
+    label[for="branchCode"]::before { content: '\f02a'; }
+    label[for="ifscCode"]::before { content: '\f1fa'; }
+    label[for="branchName"]::before { content: '\f3c5'; }
+    label[for="status"]::before { content: '\f111'; }
+    label[for="minBalance"]::before { content: '\f4d3'; }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      padding: 15px 20px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      transform: translateY(-2px);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      background-size: 20px;
+      padding-right: 50px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    button[type="submit"] {
+      padding: 18px 30px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button[type="submit"]:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+      background: linear-gradient(135deg, #764ba2, #667eea);
+    }
+
+    button[type="submit"]:active {
+      transform: translateY(-1px);
+    }
+
+    button[type="submit"]::before {
+      content: '\f067';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #4a5568;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 12px 20px;
+      border-radius: 25px;
+      background: rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      margin-top: 30px;
+      border: 2px solid transparent;
+    }
+
+    .back-link:hover {
+      background: rgba(0, 0, 0, 0.1);
+      transform: translateX(-5px);
+      color: #2d3748;
+      border-color: #e2e8f0;
+    }
+
+    .back-link::before {
+      content: '\f060';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      transition: transform 0.3s ease;
+    }
+
+    .back-link:hover::before {
+      transform: translateX(-3px);
+    }
+
+    /* Form validation styling */
+    input:invalid {
+      border-color: #e53e3e;
+    }
+
+    input:valid {
+      border-color: #38a169;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 30px 20px;
+        margin: 10px;
+      }
+
+      h2 {
+        font-size: 2rem;
+        flex-direction: column;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+
+      button[type="submit"] {
+        padding: 15px 25px;
+        font-size: 1rem;
+      }
+    }
+
+    /* Loading state */
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .loading button[type="submit"] {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    /* Form animation */
+    .form-group {
+      animation: formSlideIn 0.6s ease-out forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    @keyframes formSlideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-group:nth-child(1) { animation-delay: 0.1s; }
+    .form-group:nth-child(2) { animation-delay: 0.2s; }
+    .form-group:nth-child(3) { animation-delay: 0.3s; }
+    .form-group:nth-child(4) { animation-delay: 0.4s; }
+    .form-group:nth-child(5) { animation-delay: 0.5s; }
+
+    /* Floating label effect */
+    .form-group {
+      position: relative;
+    }
+
+    input:focus + label,
+    input:not(:placeholder-shown) + label,
+    select:focus + label {
+      transform: translateY(-25px) scale(0.8);
+      color: #667eea;
+    }
+
+    /* Better focus indicators */
+    input:focus,
+    select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>
+    <i class="fas fa-plus-circle"></i>
+    Create New Account
+  </h2>
+
+  <!-- ✅ Confirmation Message -->
+  <div th:if="${message}" class="success-msg">
+    <p th:text="${message}"></p>
+  </div>
+
+  <form th:action="@{/admin/create-account}" method="post">
+    <div class="form-group">
+      <label for="userId">User ID:</label>
+      <input type="number" id="userId" name="userId" required />
+    </div>
+
+    <div class="form-group">
+      <label for="accountType">Account Type:</label>
+      <select id="accountType" name="accountType" required>
+        <option value="SAVINGS">Savings</option>
+        <option value="CURRENT">Current</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="initialBalance">Initial Balance:</label>
+        <input type="number" id="initialBalance" name="initialBalance" step="0.01" required />
+      </div>
+
+      <div class="form-group">
+        <label for="interestRate">Interest Rate (%):</label>
+        <input type="number" id="interestRate" name="interestRate" step="0.01" required />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="branchCode">Branch Code:</label>
+        <input type="text" id="branchCode" name="branchCode" required />
+      </div>
+
+      <div class="form-group">
+        <label for="ifscCode">IFSC Code:</label>
+        <input type="text" id="ifscCode" name="ifscCode" required />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="branchName">Branch Name:</label>
+      <input type="text" id="branchName" name="branchName" required />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="status">Status:</label>
+        <select id="status" name="status" required>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="minBalance">Minimum Balance:</label>
+        <input type="number" id="minBalance" name="minBalance" step="0.01" required />
+      </div>
+    </div>
+
+    <button type="submit">Create Account</button>
+  </form>
+
+  <div>
+    <a th:href="@{/admin/dashboard}" class="back-link">
+      Back to Dashboard
+    </a>
+  </div>
+</div>
+</body>
+</html>

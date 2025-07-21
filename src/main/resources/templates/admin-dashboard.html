@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<h1>👮 Admin Dashboard</h1>
+
+<h2>Registered Users</h2>
+<table border="1">
+  <thead>
+  <tr>
+    <th>User ID</th>
+    <th>Username</th>
+    <th>Email</th>
+    <th>Phone</th>
+    <th>KYC Status</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+  <tbody id="users-table">
+  <!-- Users will be loaded by JS -->
+  </tbody>
+</table>
+
+<script>
+  // Fetch all users
+  fetch('/admin/users')
+      .then(res => res.json())
+      .then(users => {
+          const table = document.getElementById('users-table');
+          users.forEach(user => {
+              table.innerHTML += `
+              <tr>
+                  <td>${user.userId}</td>
+                  <td>${user.username}</td>
+                  <td>${user.email}</td>
+                  <td>${user.phone}</td>
+                  <td>${user.kycStatus}</td>
+                  <td>
+                      <button onclick="updateKyc(${user.userId}, 'VERIFIED')">Approve</button>
+                      <button onclick="updateKyc(${user.userId}, 'REJECTED')">Reject</button>
+                  </td>
+              </tr>`;
+          });
+      });
+
+  function updateKyc(userId, status) {
+      fetch('/admin/kyc/' + userId + '?status=' + status, { method: 'PUT' })
+          .then(() => window.location.reload());
+  }
+</script>
+</body>
+</html>

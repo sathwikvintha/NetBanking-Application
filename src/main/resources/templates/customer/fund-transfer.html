@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Fund Transfer</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border-radius: 2px;
+    }
+
+    .header h2 {
+      font-size: 2.5rem;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px;
+      position: relative;
+      gap: 80px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #e0e6ff;
+      color: #667eea;
+      font-weight: bold;
+      font-size: 1.2rem;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .step.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .step.completed {
+      background: linear-gradient(135deg, #51cf66, #69db7c);
+      color: white;
+    }
+
+    .step::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 60px;
+      width: 80px;
+      height: 2px;
+      background: #e0e6ff;
+      transform: translateY(-50%);
+    }
+
+    .step:last-child::after {
+      display: none;
+    }
+
+    .step.active::after,
+    .step.completed::after {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .success-message {
+      color: #28a745;
+      background: linear-gradient(135deg, #e6f4ea, #f0f9f2);
+      border: 2px solid #51cf66;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      font-weight: 600;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 5px 20px rgba(81, 207, 102, 0.2);
+      animation: successPulse 2s infinite;
+    }
+
+    @keyframes successPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    .form-container {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      margin-bottom: 30px;
+      border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 15px 20px;
+      border: 2px solid #e0e6ff;
+      border-radius: 10px;
+      font-size: 1rem;
+      background: white;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .form-group input:invalid {
+      border-color: #ff6b6b;
+    }
+
+    .form-group input:valid {
+      border-color: #51cf66;
+    }
+
+    .account-info {
+      background: linear-gradient(135deg, #f8f9ff, #e0e6ff);
+      border: 1px solid #c5d2ff;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .account-info.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .account-balance {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #667eea;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .transfer-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 18px 40px;
+      border: none;
+      border-radius: 25px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .transfer-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .transfer-button:active {
+      transform: translateY(0);
+    }
+
+    .transfer-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .transfer-button:hover::before {
+      left: 100%;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 25px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 20px rgba(108, 117, 125, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .form-animation {
+      animation: slideInRight 0.5s ease-out;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .amount-suggestions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .amount-chip {
+      background: #e0e6ff;
+      color: #667eea;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .amount-chip:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .loading .transfer-button {
+      background: #ccc;
+    }
+
+    .validation-message {
+      color: #ff6b6b;
+      font-size: 0.9rem;
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .success-icon {
+      color: #51cf66;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+        margin: 10px;
+      }
+
+      .header h2 {
+        font-size: 2rem;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .step-indicator {
+        margin-bottom: 20px;
+      }
+
+      .step {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+      }
+
+      .step::after {
+        width: 60px;
+        left: 45px;
+      }
+
+      .form-container {
+        padding: 20px;
+      }
+
+      .amount-suggestions {
+        justify-content: center;
+      }
+    }
+  </style>
+
+  <script>
+    let currentStep = 1;
+    let selectedAccount = null;
+
+    function updateStepIndicator() {
+      const steps = document.querySelectorAll('.step');
+      steps.forEach((step, index) => {
+        step.classList.remove('active', 'completed');
+        if (index + 1 < currentStep) {
+          step.classList.add('completed');
+        } else if (index + 1 === currentStep) {
+          step.classList.add('active');
+        }
+      });
+    }
+
+    function showTransferForm() {
+      const selectElement = document.getElementById('fromAccount');
+      const selected = selectElement.value;
+      const transferForm = document.getElementById('transfer-form');
+      const accountInfo = document.getElementById('account-info');
+
+      if (selected) {
+        // Get selected account details
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const accountText = selectedOption.text;
+
+        // Show account info
+        document.getElementById('selected-account-info').textContent = accountText;
+        accountInfo.classList.add('show');
+
+        // Show transfer form with animation
+        transferForm.classList.remove('hidden');
+        transferForm.classList.add('form-animation');
+
+        // Update hidden field
+        document.getElementById('fromAccountIdHidden').value = selected;
+
+        // Update step indicator
+        currentStep = 2;
+        updateStepIndicator();
+
+        selectedAccount = selected;
+      } else {
+        transferForm.classList.add('hidden');
+        accountInfo.classList.remove('show');
+        currentStep = 1;
+        updateStepIndicator();
+      }
+    }
+
+    function setAmount(amount) {
+      document.getElementById('amount').value = amount;
+      validateAmount();
+    }
+
+    function validateAmount() {
+      const amountInput = document.getElementById('amount');
+      const amount = parseFloat(amountInput.value);
+      const validationMsg = document.getElementById('amount-validation');
+
+      if (amount <= 0) {
+        validationMsg.textContent = 'Amount must be greater than 0';
+        validationMsg.style.display = 'flex';
+        return false;
+      } else if (amount > 1000000) {
+        validationMsg.textContent = 'Amount cannot exceed ₹10,00,000';
+        validationMsg.style.display = 'flex';
+        return false;
+      } else {
+        validationMsg.style.display = 'none';
+        return true;
+      }
+    }
+
+    function validateForm() {
+      const form = document.getElementById('transfer-form-element');
+      const submitBtn = document.getElementById('submit-btn');
+
+      if (form.checkValidity() && validateAmount()) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('loading');
+      }
+    }
+
+    // Redirect after 3 seconds on success
+    window.addEventListener('DOMContentLoaded', () => {
+      updateStepIndicator();
+
+      if (window.location.search.includes('success=true')) {
+        setTimeout(() => {
+          window.location.href = '/customer/fund-transfer';
+        }, 3000);
+      }
+
+      // Add event listeners for validation
+      document.getElementById('amount').addEventListener('input', () => {
+        validateAmount();
+        validateForm();
+      });
+
+      document.getElementById('toAccountNumber').addEventListener('input', validateForm);
+      document.getElementById('remarks').addEventListener('input', validateForm);
+    });
+  </script>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h2>
+      <i class="fas fa-exchange-alt"></i>
+      Fund Transfer
+    </h2>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="step-indicator">
+    <div class="step active">1</div>
+    <div class="step">2</div>
+  </div>
+
+  <!-- Success Message -->
+  <div th:if="${param.success}" class="success-message">
+    <i class="fas fa-check-circle"></i>
+    Funds transferred successfully! Redirecting in 3 seconds...
+  </div>
+
+  <!-- Step 1: Account Selection -->
+  <div class="form-container">
+    <form>
+      <div class="form-group">
+        <label for="fromAccount">
+          <i class="fas fa-wallet"></i>
+          Select Your Account
+        </label>
+        <select id="fromAccount" onchange="showTransferForm()" required>
+          <option value="">-- Choose your account --</option>
+          <option th:each="acc : ${accounts}"
+                  th:value="${acc.accountId}"
+                  th:text="${acc.accountNumber + ' (' + acc.accountType + ')' + ' - ₹' + acc.balance}">
+          </option>
+        </select>
+      </div>
+
+      <div id="account-info" class="account-info">
+        <div class="account-balance">
+          <i class="fas fa-info-circle"></i>
+          <span id="selected-account-info"></span>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Step 2: Transfer Form -->
+  <div id="transfer-form" class="form-container hidden">
+    <form id="transfer-form-element"
+          th:action="@{/customer/transfer}" method="post" th:object="${transferRequest}">
+
+      <input type="hidden" id="fromAccountIdHidden" th:field="*{fromAccountId}" />
+
+      <div class="form-group">
+        <label for="toAccountNumber">
+          <i class="fas fa-university"></i>
+          To Account Number
+        </label>
+        <input type="text"
+               id="toAccountNumber"
+               th:field="*{toAccountNumber}"
+               placeholder="Enter recipient's account number"
+               required />
+      </div>
+
+      <div class="form-group">
+        <label for="amount">
+          <i class="fas fa-rupee-sign"></i>
+          Amount
+        </label>
+        <input type="number"
+               id="amount"
+               th:field="*{amount}"
+               min="1"
+               step="0.01"
+               placeholder="Enter amount to transfer"
+               required />
+        <div class="amount-suggestions">
+          <div class="amount-chip" onclick="setAmount(500)">₹500</div>
+          <div class="amount-chip" onclick="setAmount(1000)">₹1,000</div>
+          <div class="amount-chip" onclick="setAmount(5000)">₹5,000</div>
+          <div class="amount-chip" onclick="setAmount(10000)">₹10,000</div>
+        </div>
+        <div id="amount-validation" class="validation-message" style="display: none;">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span></span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="remarks">
+          <i class="fas fa-comment"></i>
+          Remarks (Optional)
+        </label>
+        <input type="text"
+               id="remarks"
+               th:field="*{remarks}"
+               placeholder="Add a note for this transfer"
+               maxlength="100" />
+      </div>
+
+      <button type="submit" id="submit-btn" class="transfer-button" disabled>
+        <i class="fas fa-paper-plane"></i>
+        Transfer Funds
+      </button>
+    </form>
+  </div>
+
+  <a th:href="@{/customer/dashboard}" class="btn">
+    <i class="fas fa-arrow-left"></i>
+    Back to Profile
+  </a>
+</div>
+</body>
+</html>

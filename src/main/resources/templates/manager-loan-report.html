@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Loan Report</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<h2>📊 Loan Report</h2>
+<table>
+    <tr>
+        <th>ID</th><th>User ID</th><th>Amount</th><th>Status</th>
+    </tr>
+    <tr th:each="loan : ${loans}">
+        <td th:text="${loan.loanId}"></td>
+        <td th:text="${loan.userId}"></td>
+        <td th:text="${loan.loanAmount}"></td>
+        <td th:text="${loan.status}"></td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin OTP Verification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .admin-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .admin-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+      background-size: 400% 400%;
+      animation: gradientShift 3s ease infinite;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .admin-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      color: #2c3e50;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .admin-badge {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: inline-block;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .security-icon {
+      font-size: 32px;
+      margin-right: 12px;
+      color: #34495e;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .info, .error {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-weight: 500;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info {
+      background: linear-gradient(135deg, #e8f5e8, #d4edda);
+      color: #2e7d32;
+      border-left: 4px solid #4caf50;
+    }
+
+    .error {
+      background: linear-gradient(135deg, #fdeaea, #f8d7da);
+      color: #c62828;
+      border-left: 4px solid #f44336;
+    }
+
+    .info::before, .error::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 4px;
+      background: linear-gradient(180deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+
+    .email-info {
+      background: rgba(52, 73, 94, 0.05);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(52, 73, 94, 0.1);
+    }
+
+    .email-info p {
+      color: #34495e;
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .email-info strong {
+      color: #2c3e50;
+      font-weight: 600;
+    }
+
+    .email-info i {
+      color: #667eea;
+      margin-right: 8px;
+    }
+
+    .field {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #34495e;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 18px 24px;
+      font-size: 18px;
+      border: 2px solid #e1e8ed;
+      border-radius: 12px;
+      background: #fff;
+      color: #2c3e50;
+      transition: all 0.3s ease;
+      text-align: center;
+      letter-spacing: 8px;
+      font-weight: 600;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      transform: translateY(-2px);
+    }
+
+    input[type="text"]::placeholder {
+      color: #95a5a6;
+      letter-spacing: 2px;
+      font-weight: 400;
+    }
+
+    button {
+      width: 100%;
+      padding: 18px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .resend-link {
+      display: block;
+      text-align: center;
+      margin-top: 25px;
+      font-size: 14px;
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+    }
+
+    .resend-link:hover {
+      background: rgba(102, 126, 234, 0.1);
+      border-color: rgba(102, 126, 234, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .resend-link i {
+      margin-right: 8px;
+    }
+
+    .admin-footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e1e8ed;
+    }
+
+    .admin-footer p {
+      color: #7f8c8d;
+      font-size: 12px;
+      margin: 0;
+    }
+
+    .admin-footer i {
+      color: #667eea;
+      margin-right: 6px;
+    }
+
+    .loading-spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ffffff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 480px) {
+      .admin-container {
+        padding: 30px 20px;
+        margin: 10px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
+      input[type="text"] {
+        padding: 16px 20px;
+        font-size: 16px;
+        letter-spacing: 6px;
+      }
+
+      button {
+        padding: 16px 20px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-container">
+  <div class="admin-header">
+    <div class="admin-badge">
+      <i class="fas fa-user-shield"></i> Admin Portal
+    </div>
+    <h2>
+      <i class="fas fa-shield-alt security-icon"></i>
+      OTP Verification
+    </h2>
+  </div>
+
+  <div th:if="${param.error}" class="error">
+    <i class="fas fa-exclamation-triangle"></i>
+    Invalid or expired OTP. Please try again.
+  </div>
+
+  <div th:if="${info}" class="info">
+    <i class="fas fa-check-circle"></i>
+    <p th:text="${info}">New OTP sent.</p>
+  </div>
+
+  <div th:if="${maskedEmail}" class="email-info">
+    <p><i class="fas fa-envelope"></i>Email: <strong th:text="${maskedEmail}"></strong></p>
+  </div>
+
+  <form th:action="@{/admin/validate-otp}" method="post">
+    <div class="field">
+      <label for="enteredOtp">
+        <i class="fas fa-key"></i> Enter OTP:
+      </label>
+      <input type="text" name="enteredOtp" id="enteredOtp" placeholder="6-digit OTP" required />
+    </div>
+    <button type="submit">
+      <i class="fas fa-check"></i>
+      <span class="btn-text">Verify OTP</span>
+      <div class="loading-spinner"></div>
+    </button>
+  </form>
+
+  <a class="resend-link" th:href="@{/admin/verify-otp-resend}">
+    <i class="fas fa-sync-alt"></i>
+    Resend OTP
+  </a>
+
+  <div class="admin-footer">
+    <p><i class="fas fa-shield-alt"></i> Secure admin authentication • Session expires in 10 minutes</p>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const otpInput = document.getElementById('enteredOtp');
+    const form = document.querySelector('form');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const spinner = submitBtn.querySelector('.loading-spinner');
+
+    // Format OTP input - only allow digits
+    otpInput.addEventListener('input', function(e) {
+      this.value = this.value.replace(/\D/g, '');
+    });
+
+    // Add loading state on form submit
+    form.addEventListener('submit', function() {
+      submitBtn.disabled = true;
+      btnText.style.display = 'none';
+      spinner.style.display = 'inline-block';
+    });
+
+    // Auto-focus on OTP input
+    otpInput.focus();
+
+    // Add subtle animation on page load
+    setTimeout(() => {
+      document.querySelector('.admin-container').style.transform = 'translateY(0)';
+      document.querySelector('.admin-container').style.opacity = '1';
+    }, 100);
+  });
+</script>
+
+</body>
+</html>

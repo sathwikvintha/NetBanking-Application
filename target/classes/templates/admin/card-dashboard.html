@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Card Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    h2 {
+      text-align: center;
+      color: #1a202c;
+      margin-bottom: 40px;
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 6px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-btn {
+      background: transparent;
+      padding: 10px 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 500;
+      color: #4a5568;
+      border: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 16px 20px;
+      text-align: left;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    th {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 13px;
+    }
+
+    tbody tr {
+      transition: all 0.3s ease;
+    }
+
+    tbody tr:hover {
+      background: rgba(102, 126, 234, 0.05);
+      transform: scale(1.01);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      gap: 6px;
+    }
+
+    .status-active {
+      background: linear-gradient(135deg, #48bb78, #38a169);
+      color: white;
+      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+    }
+
+    .status-blocked {
+      background: linear-gradient(135deg, #f56565, #e53e3e);
+      color: white;
+      box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+    }
+
+    .status-active::before {
+      content: '●';
+      color: #c6f6d5;
+    }
+
+    .status-blocked::before {
+      content: '●';
+      color: #fed7d7;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #f56565, #e53e3e);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 8px;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      gap: 6px;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(245, 101, 101, 0.4);
+    }
+
+    .unblock-btn {
+      background: linear-gradient(135deg, #48bb78, #38a169);
+    }
+
+    .unblock-btn:hover {
+      box-shadow: 0 6px 16px rgba(72, 187, 120, 0.4);
+    }
+
+    .back-button {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .card-number {
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-weight: 600;
+      background: rgba(102, 126, 234, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      color: #667eea;
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .card-type {
+      display: inline-block;
+      background: rgba(118, 75, 162, 0.1);
+      color: #764ba2;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .expiry-date {
+      font-family: 'Monaco', 'Menlo', monospace;
+      color: #4a5568;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+        margin: 10px;
+      }
+
+      .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-group {
+        justify-content: center;
+      }
+
+      .table-container {
+        overflow-x: auto;
+      }
+
+      table {
+        min-width: 600px;
+      }
+
+      th, td {
+        padding: 12px;
+        font-size: 13px;
+      }
+
+      h2 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>💳 Issued Cards</h2>
+
+  <div class="header-actions">
+    <a href="/admin/cards/issue" class="btn">➕ Issue New Card</a>
+
+    <!-- 🔍 Filter Options -->
+    <div class="btn-group">
+      <a href="/admin/cards?status=ALL" class="filter-btn">All</a>
+      <a href="/admin/cards?status=ACTIVE" class="filter-btn">Active</a>
+      <a href="/admin/cards?status=BLOCKED" class="filter-btn">Blocked</a>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+      <tr>
+        <th>User</th>
+        <th>Card Type</th>
+        <th>Card Number</th>
+        <th>Status</th>
+        <th>Expiry</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="card : ${cards}">
+        <td><span class="user-name" th:text="${card.cardholderName}">John Doe</span></td>
+        <td><span class="card-type" th:text="${card.cardType}">DEBIT</span></td>
+        <td><span class="card-number" th:text="${card.cardNumber}">1234</span></td>
+        <td>
+          <span th:if="${card.status != null and card.status.equalsIgnoreCase('ACTIVE')}"
+                class="status-badge status-active">ACTIVE</span>
+          <span th:if="${card.status != null and card.status.equalsIgnoreCase('BLOCKED')}"
+                class="status-badge status-blocked">BLOCKED</span>
+        </td>
+        <td><span class="expiry-date" th:text="${card.expiryDate}">2029-07-14</span></td>
+        <td>
+          <a th:if="${card.status != null and card.status.equalsIgnoreCase('ACTIVE')}"
+             th:href="@{/admin/cards/block/{id}(id=${card.cardId})}"
+             class="action-btn">🔒 Block</a>
+          <a th:if="${card.status != null and card.status.equalsIgnoreCase('BLOCKED')}"
+             th:href="@{/admin/cards/unblock/{id}(id=${card.cardId})}"
+             class="action-btn unblock-btn">🔓 Unblock</a>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="back-button">
+    <a href="/admin/dashboard" class="btn">⬅ Back to Dashboard</a>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Loan Application Status</title>
+</head>
+<body>
+<h2>Your Loan Applications</h2>
+
+<table>
+  <tr>
+    <th>Loan ID</th>
+    <th>Type</th>
+    <th>Amount</th>
+    <th>Term</th>
+    <th>Status</th>
+    <th>Applied On</th>
+  </tr>
+  <tr th:each="loan : ${loans}">
+    <td th:text="${loan.loanId}"></td>
+    <td th:text="${loan.loanType}"></td>
+    <td th:text="${loan.amount}"></td>
+    <td th:text="${loan.loanDuration}"></td>
+    <td th:text="${loan.status}"></td>
+    <td th:text="${loan.createdAt}"></td>
+  </tr>
+</table>
+
+<a href="/customer/profile">Back to Dashboard</a>
+</body>
+</html>

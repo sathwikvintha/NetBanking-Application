@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Loan Requests</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Inter", "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    h2 {
+      text-align: center;
+      color: #1a202c;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .btn-filter {
+      background: linear-gradient(45deg, #edf2f7, #f7fafc);
+      color: #2d3748;
+      padding: 10px 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-filter:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      border-color: #667eea;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 16px;
+      text-align: left;
+      font-size: 14px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: none;
+    }
+
+    tbody tr {
+      transition: all 0.3s ease;
+    }
+
+    tbody tr:hover {
+      background: linear-gradient(45deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+      transform: scale(1.01);
+    }
+
+    .action-form {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .approve-btn, .reject-btn {
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .approve-btn {
+      background: linear-gradient(45deg, #38a169, #48bb78);
+      color: white;
+    }
+
+    .approve-btn:hover {
+      background: linear-gradient(45deg, #2f855a, #38a169);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+    }
+
+    .reject-btn {
+      background: linear-gradient(45deg, #e53e3e, #f56565);
+      color: white;
+    }
+
+    .reject-btn:hover {
+      background: linear-gradient(45deg, #c53030, #e53e3e);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+    }
+
+    .badge {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-approved {
+      background: linear-gradient(45deg, #c6f6d5, #9ae6b4);
+      color: #22543d;
+      box-shadow: 0 2px 8px rgba(56, 161, 105, 0.2);
+    }
+
+    .badge-rejected {
+      background: linear-gradient(45deg, #fed7d7, #feb2b2);
+      color: #742a2a;
+      box-shadow: 0 2px 8px rgba(229, 62, 62, 0.2);
+    }
+
+    .badge-pending {
+      background: linear-gradient(45deg, #fefcbf, #faf089);
+      color: #744210;
+      box-shadow: 0 2px 8px rgba(237, 137, 54, 0.2);
+    }
+
+    .btn {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      background: linear-gradient(45deg, #5a67d8, #6b46c1);
+    }
+
+    .no-actions {
+      font-weight: 500;
+      color: #718096;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+        margin: 10px;
+      }
+
+      h2 {
+        font-size: 2rem;
+      }
+
+      .filters {
+        gap: 8px;
+      }
+
+      .btn-filter {
+        padding: 8px 16px;
+        font-size: 12px;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 12px 8px;
+      }
+
+      .action-form {
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .approve-btn, .reject-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+      }
+    }
+
+    /* Smooth scrolling for better UX */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(45deg, #5a67d8, #6b46c1);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>📝 Loan Requests</h2>
+
+  <div class="filters">
+    <a href="/admin/loans?status=ALL" class="btn-filter">All</a>
+    <a href="/admin/loans?status=PENDING" class="btn-filter">Pending</a>
+    <a href="/admin/loans?status=APPROVED" class="btn-filter">Approved</a>
+    <a href="/admin/loans?status=REJECTED" class="btn-filter">Rejected</a>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+      <tr>
+        <th>User</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Duration</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="loan : ${loans}">
+        <td th:text="${loan.user.name}">John</td>
+        <td th:text="${loan.loanType}">Home</td>
+        <td th:text="${loan.loanAmount}">100000</td>
+        <td th:text="${loan.loanDuration}">12</td>
+        <td>
+          <span th:if="${loan.status.equalsIgnoreCase('PENDING') or loan.status.equalsIgnoreCase('ACTIVE')}"
+                class="badge badge-pending">PENDING</span>
+          <span th:if="${loan.status.equalsIgnoreCase('APPROVED')}"
+                class="badge badge-approved">APPROVED</span>
+          <span th:if="${loan.status.equalsIgnoreCase('REJECTED')}"
+                class="badge badge-rejected">REJECTED</span>
+        </td>
+        <td th:text="${loan.createdAt}">2025-07-14</td>
+        <td>
+          <th:block th:if="${loan.status.equalsIgnoreCase('PENDING') or loan.status.equalsIgnoreCase('ACTIVE')}">
+            <form th:action="@{/admin/loans/update}" method="post" class="action-form">
+              <input type="hidden" name="loanId" th:value="${loan.loanId}" />
+              <button type="submit" name="action" value="APPROVED" class="approve-btn">✅ Approve</button>
+              <button type="submit" name="action" value="REJECTED" class="reject-btn">❌ Reject</button>
+            </form>
+          </th:block>
+          <th:block th:unless="${loan.status.equalsIgnoreCase('PENDING') or loan.status.equalsIgnoreCase('ACTIVE')}">
+            <span class="no-actions">No actions available</span>
+          </th:block>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <a href="/admin/dashboard" class="btn">⬅ Back to Dashboard</a>
+</div>
+
+</body>
+</html>

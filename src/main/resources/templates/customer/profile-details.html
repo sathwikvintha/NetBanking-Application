@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Your Profile</title>
+  <link rel="stylesheet" href="/css/profile.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .profile-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 800px;
+        width: 100%;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+        border-radius: 20px 20px 0 0;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .header h2 {
+        color: #2d3748;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 3rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-info {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .info-row {
+        display: flex;
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        transition: background-color 0.2s ease;
+    }
+
+    .info-row:hover {
+        background-color: rgba(102, 126, 234, 0.02);
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #4a5568;
+        width: 200px;
+        display: flex;
+        align-items: center;
+        font-size: 15px;
+        position: relative;
+    }
+
+    .info-label::after {
+        content: '';
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 2px;
+    }
+
+    .info-value {
+        flex: 1;
+        color: #2d3748;
+        font-size: 15px;
+        font-weight: 500;
+        padding-left: 20px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-approved {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-rejected {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-group {
+        margin-top: 40px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 14px 28px;
+        border-radius: 50px;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+        overflow: hidden;
+        border: 2px solid transparent;
+        backdrop-filter: blur(10px);
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        transform: translate(-50%, -50%);
+    }
+
+    .btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn i {
+        font-size: 16px;
+        transition: transform 0.3s ease;
+    }
+
+    .btn:hover i {
+        transform: scale(1.1);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #4a5568, #2d3748);
+        color: white;
+        box-shadow: 0 8px 25px rgba(74, 85, 104, 0.3);
+    }
+
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(74, 85, 104, 0.4);
+    }
+
+    .btn-tertiary {
+        background: rgba(255, 255, 255, 0.9);
+        color: #4a5568;
+        border: 2px solid rgba(74, 85, 104, 0.2);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-tertiary:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 1);
+        border-color: rgba(74, 85, 104, 0.3);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 20px;
+            margin: 10px;
+        }
+
+        .header h2 {
+            font-size: 2rem;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            font-size: 2.5rem;
+        }
+
+        .info-row {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-label {
+            width: 100%;
+        }
+
+        .info-label::after {
+            display: none;
+        }
+
+        .info-value {
+            padding-left: 0;
+        }
+
+        .btn-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn {
+            justify-content: center;
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+  </style>
+</head>
+<body>
+
+<div class="profile-container fade-in">
+  <div class="header">
+    <div class="profile-avatar">
+      <i class="fas fa-user"></i>
+    </div>
+    <h2>Your Profile</h2>
+  </div>
+
+  <div class="profile-info">
+    <div class="info-row">
+      <div class="info-label">Name:</div>
+      <div class="info-value" th:text="${user.name}">John Doe</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-label">Username:</div>
+      <div class="info-value" th:text="${user.username}">jdoe</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-label">Email:</div>
+      <div class="info-value" th:text="${user.email}">john@example.com</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-label">Phone:</div>
+      <div class="info-value" th:text="${user.phone}">1234567890</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-label">Role:</div>
+      <div class="info-value">
+        <span class="role-badge" th:text="${user.role}">CUSTOMER</span>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-label">KYC Status:</div>
+      <div class="info-value">
+        <span class="status-badge status-pending" th:text="${user.kycStatus}" th:classappend="${user.kycStatus == 'APPROVED' ? 'status-approved' : (user.kycStatus == 'REJECTED' ? 'status-rejected' : 'status-pending')}">PENDING</span>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-label">Date of Birth:</div>
+      <div class="info-value" th:text="${#temporals.format(user.dob, 'dd MMMM yyyy')}">01 January 2000</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-label">Address:</div>
+      <div class="info-value" th:text="${user.address}">123 Main Street</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-label">City:</div>
+      <div class="info-value" th:text="${user.city}">Chennai</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-label">Registered At:</div>
+      <div class="info-value" th:text="${#temporals.format(user.registrationDate, 'dd-MM-yyyy')}">10-06-2024</div>
+    </div>
+
+    <!-- Show Parent Contact only if present -->
+    <div class="info-row" th:if="${user.parentNum != null and !user.parentNum.trim().isEmpty()}">
+      <div class="info-label">Parent Contact:</div>
+      <div class="info-value" th:text="${user.parentNum}">9876543210</div>
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <a href="/customer/profile/edit" class="btn btn-primary">
+      <i class="fas fa-edit"></i>
+      Edit Profile
+    </a>
+    <a href="/customer/profile/password" class="btn btn-secondary">
+      <i class="fas fa-lock"></i>
+      Change Password
+    </a>
+    <a href="/customer/dashboard" class="btn btn-tertiary">
+      <i class="fas fa-arrow-left"></i>
+      Go Back
+    </a>
+  </div>
+</div>
+
+</body>
+</html>
