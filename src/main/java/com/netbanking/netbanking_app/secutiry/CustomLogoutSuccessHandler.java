@@ -6,7 +6,6 @@ import com.netbanking.netbanking_app.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -38,15 +37,22 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
 
                 // 📝 Log user logout into audit_logs
                 auditLogService.logAction(
-                        "LOGOUT_SUCCESS",              // Action type
-                        username,                      // Performed by
-                        user.getUserId(),              // Target user ID
-                        username,                      // Target username
-                        "User logged out from IP: " + ipAddress, // Description
-                        false,                         // No notification required
-                        null                           // No notification message
+                        "LOGOUT_SUCCESS",
+                        username,
+                        user.getUserId(),
+                        username,
+                        "User logged out from IP: " + ipAddress,
+                        false,
+                        null
                 );
             }
+        }
+
+        // 🚫 Clean session token and expiry before redirect
+        if (request.getSession(false) != null) {
+            request.getSession().removeAttribute("loginToken");
+            request.getSession().removeAttribute("tokenExpiry");
+            request.getSession().invalidate(); // 💥 Optional: fully clears session
         }
 
         // ✅ Redirect after logout

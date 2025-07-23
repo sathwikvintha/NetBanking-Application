@@ -9,6 +9,7 @@ import com.netbanking.netbanking_app.repository.LoanRepository;
 import com.netbanking.netbanking_app.repository.NotificationRepository;
 import com.netbanking.netbanking_app.service.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -73,7 +74,7 @@ public class CustomerController {
 
 
     @GetMapping("/dashboard")
-    public String customerDashboard(Model model, Principal principal) {
+    public String customerDashboard(Model model, Principal principal, HttpServletRequest request) {
         try {
             System.out.println("🚀 Dashboard accessed by: " + principal.getName());
 
@@ -93,7 +94,6 @@ public class CustomerController {
             }
             model.addAttribute("repaymentSummaries", repaymentSummaries);
 
-
             List<Account> accounts = accountService.getAccountsByUserId(user.getUserId());
             if (accounts == null || accounts.isEmpty()) {
                 System.out.println("⚠️ No accounts found for user ID: " + user.getUserId());
@@ -106,6 +106,20 @@ public class CustomerController {
             Account primaryAccount = accounts.get(0);
             List<Transaction> transactions = transactionService.getTransactions(primaryAccount.getAccountId());
 
+            // ✅ Show popup only if triggered explicitly (e.g. after transaction)
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                Object msg = session.getAttribute("popupMessage");
+                Object type = session.getAttribute("popupType");
+
+                if (msg != null && type != null) {
+                    model.addAttribute("popupMessage", msg);
+                    model.addAttribute("popupType", type);
+                    session.removeAttribute("popupMessage");
+                    session.removeAttribute("popupType");
+                }
+            }
+
             model.addAttribute("user", user);
             model.addAttribute("account", primaryAccount);
             model.addAttribute("accounts", accounts);
@@ -115,7 +129,6 @@ public class CustomerController {
             model.addAttribute("bills", bills);
             model.addAttribute("repaymentSummaries", repaymentSummaries);
 
-
             return "customer-dashboard";
         } catch (Exception e) {
             System.err.println("❌ Error in dashboard: " + e.getMessage());
@@ -124,6 +137,7 @@ public class CustomerController {
             return "error";
         }
     }
+
 
     @GetMapping("/profile")
     public String customerProfile(Model model, Principal principal, HttpSession session) {
@@ -188,7 +202,7 @@ public class CustomerController {
     }
 
     @PostMapping("/profile/update")
-    public String updateProfile(@ModelAttribute("user") User user, Principal principal) {
+    public String updateProfile(@ModelAttribute("user") User user, Principal principal, HttpSession session) {
         User existingUser = userService.getUserByUsername(principal.getName());
         existingUser.setName(user.getName());
         existingUser.setEmail(user.getEmail());
@@ -198,7 +212,10 @@ public class CustomerController {
         existingUser.setCity(user.getCity());
         existingUser.setParentNum(user.getParentNum());
 
-        userService.updateUser(existingUser); // ⬅️ implement this in UserService
+        userService.updateUser(existingUser);
+        session.setAttribute("popupMessage", "✅ Profile updated successfully");
+        session.setAttribute("popupType", "SUCCESS");
+
         return "redirect:/customer/profile";
     }
 
@@ -209,14 +226,27 @@ public class CustomerController {
     }
 
     @PostMapping("/profile/password")
-    public String changePassword(@ModelAttribute ChangePasswordRequest request, Principal principal, Model model) {
+    public String changePassword(@ModelAttribute ChangePasswordRequest request,
+                                 Principal principal,
+                                 Model model,
+                                 HttpSession session) {
+
         String username = principal.getName();
-        boolean success = userService.changePassword(username, request.getOldPassword(), request.getNewPassword(), request.getConfirmPassword());
+        boolean success = userService.changePassword(
+                username,
+                request.getOldPassword(),
+                request.getNewPassword(),
+                request.getConfirmPassword()
+        );
 
         if (success) {
-            model.addAttribute("message", "✅ Password changed successfully.");
+            // ✅ Show popup on dashboard after success
+            session.setAttribute("popupMessage", "✅ Password changed successfully.");
+            session.setAttribute("popupType", "SUCCESS");
+
             return "redirect:/customer/profile";
         } else {
+            // ❌ Inline error on change-password page
             model.addAttribute("error", "❌ Password change failed. Please check your inputs.");
             return "customer/change-password";
         }
@@ -370,7 +400,9 @@ public class CustomerController {
 
 
     @PostMapping("/transfer")
-    public String transferFunds(@ModelAttribute FundTransferRequest request, Principal principal) {
+    public String transferFunds(@ModelAttribute FundTransferRequest request,
+                                Principal principal,
+                                HttpSession session) {
         try {
             // 🔐 Validate authenticated user
             User user = userService.getUserByUsername(principal.getName());
@@ -399,6 +431,7 @@ public class CustomerController {
             // 💸 Perform transfer
             fundTransferService.transfer(request);
 
+            // 📝 Audit log for transparency
             auditLogService.logAction(
                     "FUND_TRANSFER_UI",
                     user.getUsername(),
@@ -409,8 +442,11 @@ public class CustomerController {
                     null
             );
 
-            // ✅ Redirect with success message
-            return "redirect:/customer/fund-transfer?success=true";
+            // ✅ Trigger dashboard popup
+            session.setAttribute("popupMessage", "₹" + request.getAmount() + " transferred successfully to Acc#" + request.getToAccountNumber());
+            session.setAttribute("popupType", "SUCCESS");
+
+            return "redirect:/customer/dashboard";
 
         } catch (Exception e) {
             System.err.println("❌ Transfer failed: " + e.getMessage());
@@ -460,7 +496,8 @@ public class CustomerController {
                                     @RequestParam String paymentMode,
                                     @RequestParam Long fromAccountId,
                                     Principal principal,
-                                    RedirectAttributes redirectAttributes) {
+                                    RedirectAttributes redirectAttributes,
+                                    HttpSession session) {
 
         User user = userService.getUserByUsername(principal.getName());
 
@@ -497,10 +534,16 @@ public class CustomerController {
 
         transactionService.saveTransaction(txn);
 
-        // ✅ Success message
+        // ✅ Notify user on dashboard with popup
+        session.setAttribute("popupMessage", "✅ EMI #" + emiNumber + " paid successfully for Loan ID #" + loanId);
+        session.setAttribute("popupType", "SUCCESS");
+
+        // ✅ Also show on repayment screen
         redirectAttributes.addFlashAttribute("paymentMessage", response);
+
         return "redirect:/customer/loan/repayment/success";
     }
+
 
 
 

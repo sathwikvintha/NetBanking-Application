@@ -3,6 +3,7 @@ package com.netbanking.netbanking_app.secutiry;
 import com.netbanking.netbanking_app.model.User;
 import com.netbanking.netbanking_app.service.AuditLogService;
 import com.netbanking.netbanking_app.service.UserService;
+import com.netbanking.netbanking_app.util.TokenGenerator;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -46,8 +47,16 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                     null
             );
 
-            // ✅ Store userId in session for downstream access
+            // ✅ Store userId in session
             request.getSession().setAttribute("userId", user.getUserId());
+
+            // 🛡️ Generate session token and expiry
+            String token = TokenGenerator.generateToken();
+            request.getSession().setAttribute("loginToken", token);
+            request.getSession().setAttribute("tokenExpiry", System.currentTimeMillis() + (20 * 60 * 1000)); // 20 minutes
+
+            // 📋 Log token-based login
+            auditLogService.logAction("USER_LOGGED_IN_WITH_TOKEN");
         } else {
             System.out.println("❌ Login success handler could not resolve user: " + username);
         }
