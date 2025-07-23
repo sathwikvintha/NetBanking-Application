@@ -43,6 +43,11 @@ public class LoanServiceImpl implements LoanService {
         return pendingLoans;
     }
 
+    public List<Loan> getLoansByUserId(Long userId) {
+        return loanRepository.findByUserId(userId);
+    }
+
+
     @Override
     public List<Loan> getPendingRequests() {
         List<Loan> pendingRequests = loanRepo.findByStatusIgnoreCase("PENDING");

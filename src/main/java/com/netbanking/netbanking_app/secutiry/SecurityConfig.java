@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
@@ -48,6 +49,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // 🔴 TEMP: Disable CSRF for Postman testing
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/customer/**").hasRole("CUSTOMER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -59,6 +62,13 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutSuccessHandler(customLogoutSuccessHandler) // ✅ Logs logout to audit_logs
                         .permitAll()
+                )
+                .sessionManagement(session -> session
+                        .maximumSessions(-1) // 🔓 Unlimited concurrent sessions
+                        .maxSessionsPreventsLogin(false) // ✅ Allow new login without blocking
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED)
                 );
 
         return http.build();
@@ -77,5 +87,11 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    // 🛡️ Ensure session cleanup on logout
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 }

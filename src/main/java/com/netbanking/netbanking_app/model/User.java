@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "USERS")
@@ -18,6 +19,7 @@ public class User {
     @Column(name = "USERNAME", nullable = false, unique = true)
     private String username;
 
+
     @Column(name = "PASSWORD", nullable = false)
     private String password;
 
@@ -26,6 +28,16 @@ public class User {
 
     @Column(name = "PHONE", nullable = false)
     private String phone;
+
+    @Transient
+    private List<Account> accounts;
+    @Transient
+    private List<Card> cards;
+    @Transient
+    private List<Loan> loans;
+    @Transient
+    private List<Bill> bills;
+
 
 
 
@@ -146,4 +158,34 @@ public class User {
     public String getKycStatus() { return kycStatus; }
 
     public void setKycStatus(String kycStatus) { this.kycStatus = kycStatus; }
+
+    // ✅ Add setters & getters
+    public void setAccounts(List<Account> accounts) {
+        this.accounts = accounts;
+    }
+    public List<Account> getAccounts() {
+        return accounts;
+    }
+
+    public void setCards(List<Card> cards) {
+        this.cards = cards;
+    }
+    public List<Card> getCards() {
+        return cards;
+    }
+
+    public void setLoans(List<Loan> loans) {
+        this.loans = loans;
+    }
+    public List<Loan> getLoans() {
+        return loans;
+    }
+
+    public List<Bill> getBills() {
+        return bills;
+    }
+
+    public void setBills(List<Bill> bills) {
+        this.bills = bills;
+    }
 }

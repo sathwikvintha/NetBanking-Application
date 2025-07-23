@@ -4,14 +4,53 @@
   <meta charset="UTF-8">
   <title>User Management</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
+    .user-row {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .user-row:hover {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.08));
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+    }
+
+    .user-details-panel {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      padding: 2rem;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      border-radius: 16px;
+      margin: 0.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+
+    .user-details-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899, #f59e0b);
+      border-radius: 16px 16px 0 0;
+    }
+
+    .details-row td {
+      padding: 0;
+    }
+
     body {
-      font-family: "Inter", "Segoe UI", sans-serif;
+      font-family: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       padding: 20px;
@@ -21,53 +60,57 @@
       max-width: 1600px;
       margin: 0 auto;
       background: rgba(255, 255, 255, 0.95);
-      border-radius: 20px;
-      padding: 40px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 48px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     h2 {
       text-align: center;
       color: #1a202c;
-      margin-bottom: 30px;
-      font-size: 2.5rem;
-      font-weight: 700;
-      background: linear-gradient(45deg, #667eea, #764ba2);
+      margin-bottom: 40px;
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      letter-spacing: -0.02em;
     }
 
     a.btn {
       display: inline-block;
-      margin-bottom: 20px;
-      background: linear-gradient(45deg, #667eea, #764ba2);
+      margin-bottom: 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 12px 24px;
+      padding: 16px 32px;
       text-decoration: none;
-      border-radius: 12px;
+      border-radius: 16px;
       font-weight: 600;
+      font-size: 15px;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     a.btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-      background: linear-gradient(45deg, #5a67d8, #6b46c1);
+      box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+      background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
     }
 
     .table-container {
-      background: white;
-      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      margin-bottom: 30px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      margin-bottom: 40px;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     table {
@@ -76,154 +119,154 @@
     }
 
     th, td {
-      padding: 16px;
+      padding: 20px 18px;
       text-align: left;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.6);
       font-size: 14px;
+      font-weight: 500;
     }
 
     th {
-      background: linear-gradient(45deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       text-transform: uppercase;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      font-weight: 700;
+      letter-spacing: 1px;
       position: sticky;
       top: 0;
       z-index: 10;
       border-bottom: none;
-    }
-
-    tbody tr {
-      transition: all 0.3s ease;
-    }
-
-    tbody tr:hover {
-      background: linear-gradient(45deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
-      transform: scale(1.01);
+      font-size: 13px;
     }
 
     .btn-toggle {
-      padding: 8px 16px;
+      padding: 10px 20px;
       margin: 2px;
-      border-radius: 8px;
-      font-weight: 500;
+      border-radius: 12px;
+      font-weight: 600;
       text-decoration: none;
       font-size: 13px;
       transition: all 0.3s ease;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .active {
-      background: linear-gradient(45deg, #48bb78, #38a169);
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
       color: white;
-      box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+      box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
     }
 
     .active:hover {
-      background: linear-gradient(45deg, #38a169, #2f855a);
+      background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+      box-shadow: 0 8px 25px rgba(72, 187, 120, 0.5);
     }
 
     .inactive {
-      background: linear-gradient(45deg, #f56565, #e53e3e);
+      background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
       color: white;
-      box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
+      box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
     }
 
     .inactive:hover {
-      background: linear-gradient(45deg, #e53e3e, #c53030);
+      background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+      box-shadow: 0 8px 25px rgba(245, 101, 101, 0.5);
     }
 
     .center-button {
       text-align: center;
-      margin-top: 30px;
+      margin-top: 40px;
     }
 
     .badge {
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 12px;
+      padding: 10px 18px;
+      border-radius: 25px;
+      font-weight: 700;
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
     }
 
     .badge-verified {
-      background: linear-gradient(45deg, #c6f6d5, #9ae6b4);
+      background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
       color: #22543d;
-      box-shadow: 0 2px 8px rgba(56, 161, 105, 0.2);
+      box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3);
     }
 
     .badge-rejected {
-      background: linear-gradient(45deg, #fed7d7, #feb2b2);
+      background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
       color: #742a2a;
-      box-shadow: 0 2px 8px rgba(229, 62, 62, 0.2);
+      box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
     }
 
     .badge-pending {
-      background: linear-gradient(45deg, #fefcbf, #faf089);
+      background: linear-gradient(135deg, #fefcbf 0%, #faf089 100%);
       color: #744210;
-      box-shadow: 0 2px 8px rgba(237, 137, 54, 0.2);
+      box-shadow: 0 4px 15px rgba(237, 137, 54, 0.3);
     }
 
     .kyc-actions {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       align-items: center;
     }
 
     .btn-verify, .btn-reject {
       border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 500;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
       font-size: 13px;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .btn-verify {
-      background: linear-gradient(45deg, #38a169, #48bb78);
+      background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
       color: white;
+      box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3);
     }
 
     .btn-verify:hover {
-      background: linear-gradient(45deg, #2f855a, #38a169);
+      background: linear-gradient(135deg, #2f855a 0%, #38a169 100%);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+      box-shadow: 0 8px 25px rgba(56, 161, 105, 0.4);
     }
 
     .btn-reject {
-      background: linear-gradient(45deg, #e53e3e, #f56565);
+      background: linear-gradient(135deg, #e53e3e 0%, #f56565 100%);
       color: white;
+      box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
     }
 
     .btn-reject:hover {
-      background: linear-gradient(45deg, #c53030, #e53e3e);
+      background: linear-gradient(135deg, #c53030 0%, #e53e3e 100%);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+      box-shadow: 0 8px 25px rgba(229, 62, 62, 0.4);
     }
 
     .no-actions {
       font-weight: 500;
       color: #718096;
       font-style: italic;
+      opacity: 0.8;
     }
 
     .status-cell {
-      font-weight: 600;
+      font-weight: 700;
       color: #2d3748;
     }
 
@@ -235,14 +278,215 @@
       color: #e53e3e;
     }
 
+    /* Details Table Styling */
+    .details-table-container {
+      margin-top: 20px;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .section-header {
+      font-weight: 700;
+      font-size: 15px;
+      text-align: center;
+      padding: 18px 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      position: relative;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .section-header.cards {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    }
+
+    .section-header.accounts {
+      background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    }
+
+    .section-header.loans {
+      background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+    }
+
+    .section-header.bills {
+      background: linear-gradient(135deg, #ab47bc 0%, #8e24aa 100%);
+    }
+
+    .details-table td {
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+      font-size: 14px;
+      vertical-align: top;
+      line-height: 1.6;
+    }
+
+    .details-table .item-row {
+      transition: all 0.3s ease;
+    }
+
+    .details-table .item-row:hover {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(168, 85, 247, 0.08));
+      transform: scale(1.01);
+    }
+
+    .details-table .item-row:nth-child(even) {
+      background: rgba(248, 250, 252, 0.6);
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #a0aec0;
+      font-style: italic;
+      padding: 24px;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+
+    .section-summary {
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      font-weight: 700;
+      color: #2d3748;
+      font-size: 15px;
+      border-bottom: 2px solid #e2e8f0;
+      text-align: center;
+    }
+
+    /* Enhanced text styling within table cells */
+    .details-table .item-content {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .details-table .item-content:last-child {
+      margin-bottom: 0;
+    }
+
+    .details-table strong {
+      color: #1a202c;
+      font-weight: 700;
+      font-size: 15px;
+      display: block;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .details-table .detail-line {
+      color: #4a5568;
+      font-weight: 500;
+      font-size: 13px;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .details-table .detail-label {
+      font-weight: 600;
+      color: #2d3748;
+      min-width: 60px;
+    }
+
+    .details-table .detail-value {
+      color: #4a5568;
+      flex: 1;
+    }
+
+    /* Status indicators */
+    .status-active {
+      color: #38a169;
+      font-weight: 600;
+      background: rgba(56, 161, 105, 0.1);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+    }
+
+    .status-inactive {
+      color: #e53e3e;
+      font-weight: 600;
+      background: rgba(229, 62, 62, 0.1);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+    }
+
+    .status-pending {
+      color: #d69e2e;
+      font-weight: 600;
+      background: rgba(214, 158, 46, 0.1);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+    }
+
+    .status-approved {
+      color: #38a169;
+      font-weight: 600;
+      background: rgba(56, 161, 105, 0.1);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+    }
+
+    .status-rejected {
+      color: #e53e3e;
+      font-weight: 600;
+      background: rgba(229, 62, 62, 0.1);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+    }
+
+    /* Amount styling */
+    .amount-value {
+      color: #38a169;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    /* Card number styling */
+    .card-number {
+      font-family: 'Monaco', 'Menlo', monospace;
+      color: #667eea;
+      font-weight: 600;
+      background: rgba(102, 126, 234, 0.1);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    /* Account number styling */
+    .account-number {
+      font-family: 'Monaco', 'Menlo', monospace;
+      color: #4ecdc4;
+      font-weight: 600;
+      background: rgba(78, 205, 196, 0.1);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
     @media (max-width: 1024px) {
       .container {
-        padding: 20px;
+        padding: 30px 20px;
         margin: 10px;
+        border-radius: 20px;
       }
 
       h2 {
-        font-size: 2rem;
+        font-size: 2.5rem;
       }
 
       table {
@@ -250,22 +494,27 @@
       }
 
       th, td {
-        padding: 12px 8px;
+        padding: 16px 12px;
       }
 
       .kyc-actions {
         flex-direction: column;
-        gap: 4px;
+        gap: 6px;
       }
 
       .btn-verify, .btn-reject {
-        padding: 6px 12px;
+        padding: 8px 14px;
         font-size: 11px;
       }
 
       .btn-toggle {
-        padding: 6px 12px;
+        padding: 8px 14px;
         font-size: 11px;
+      }
+
+      .user-details-panel {
+        padding: 1.5rem;
+        margin: 0.25rem;
       }
     }
 
@@ -277,34 +526,54 @@
       table {
         min-width: 800px;
       }
+
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 20px 16px;
+      }
+
+      h2 {
+        font-size: 2rem;
+      }
     }
 
-    /* Smooth scrolling for better UX */
     html {
       scroll-behavior: smooth;
     }
 
-    /* Custom scrollbar */
     ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+      width: 12px;
+      height: 12px;
     }
 
     ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 10px;
+      background: rgba(241, 245, 249, 0.8);
+      border-radius: 12px;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: linear-gradient(45deg, #667eea, #764ba2);
-      border-radius: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(45deg, #5a67d8, #6b46c1);
+      background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    }
+
+    .btn-toggle:focus,
+    .btn-verify:focus,
+    .btn-reject:focus,
+    a.btn:focus {
+      outline: 3px solid rgba(102, 126, 234, 0.4);
+      outline-offset: 2px;
     }
   </style>
 </head>
+
 <body>
 
 <div class="container">
@@ -323,42 +592,194 @@
         <th>Toggle</th>
         <th>KYC Status</th>
         <th>KYC Actions</th>
-
       </tr>
       </thead>
       <tbody>
-      <tr th:each="user : ${users}">
-        <td th:text="${user.name}">Name</td>
-        <td th:text="${user.email}">Email</td>
-        <td th:text="${user.role}">Role</td>
-        <td class="status-cell"
-            th:classappend="${user.isActive.equalsIgnoreCase('Y') ? 'active-yes' : 'active-no'}"
-            th:text="${user.isActive.equalsIgnoreCase('Y') ? 'Yes' : 'No'}">Active</td>
-        <td>
-          <a th:href="@{/admin/users/toggle/{id}(id=${user.userId})}"
-             th:text="${user.isActive.equalsIgnoreCase('Y') ? 'Deactivate' : 'Activate'}"
-             th:class="${user.isActive.equalsIgnoreCase('Y') ? 'btn-toggle inactive' : 'btn-toggle active'}">
-          </a>
-        </td>
-        <td>
-          <span th:class="${user.kycStatus == 'VERIFIED' ? 'badge badge-verified' :
-                           user.kycStatus == 'REJECTED' ? 'badge badge-rejected' :
-                           'badge badge-pending'}"
-                th:text="${user.kycStatus != null ? user.kycStatus : 'PENDING'}">PENDING</span>
-        </td>
-        <td>
-          <th:block th:if="${user.kycStatus != null and user.kycStatus.equalsIgnoreCase('PENDING')}">
-            <form th:action="@{/admin/kyc/{userId}(userId=${user.userId})}" method="post" class="kyc-actions">
-              <button type="submit" name="status" value="VERIFIED" class="btn-verify">✅ Verify</button>
-              <button type="submit" name="status" value="REJECTED" class="btn-reject">❌ Reject</button>
-            </form>
-          </th:block>
-          <th:block th:unless="${user.kycStatus != null and user.kycStatus.equalsIgnoreCase('PENDING')}">
-            <span class="no-actions">No actions available</span>
-          </th:block>
-        </td>
+      <th:block th:each="user : ${users}">
+        <!-- 🧑 Main User Row -->
+        <tr class="user-row" th:id="'row-' + ${user.userId}" th:onclick="|toggleDetails('details-${user.userId}')|">
+          <td th:text="${user.name}">Name</td>
+          <td th:text="${user.email}">Email</td>
+          <td th:text="${user.role}">Role</td>
+          <td class="status-cell"
+              th:classappend="${user.isActive.equalsIgnoreCase('Y') ? 'active-yes' : 'active-no'}"
+              th:text="${user.isActive.equalsIgnoreCase('Y') ? 'Yes' : 'No'}">Active</td>
+          <td>
+            <a th:href="@{/admin/users/toggle/{id}(id=${user.userId})}"
+               th:text="${user.isActive.equalsIgnoreCase('Y') ? 'Deactivate' : 'Activate'}"
+               th:class="${user.isActive.equalsIgnoreCase('Y') ? 'btn-toggle inactive' : 'btn-toggle active'}">
+            </a>
+          </td>
+          <td>
+            <span th:class="${user.kycStatus == 'VERIFIED' ? 'badge badge-verified' :
+                             user.kycStatus == 'REJECTED' ? 'badge badge-rejected' :
+                             'badge badge-pending'}"
+                  th:text="${user.kycStatus != null ? user.kycStatus : 'PENDING'}">PENDING</span>
+          </td>
+          <td>
+            <th:block th:if="${user.kycStatus != null and user.kycStatus.equalsIgnoreCase('PENDING')}">
+              <form th:action="@{/admin/kyc/{userId}(userId=${user.userId})}" method="post" class="kyc-actions">
+                <button type="submit" name="status" value="VERIFIED" class="btn-verify">✅ Verify</button>
+                <button type="submit" name="status" value="REJECTED" class="btn-reject">❌ Reject</button>
+              </form>
+            </th:block>
+            <th:block th:unless="${user.kycStatus != null and user.kycStatus.equalsIgnoreCase('PENDING')}">
+              <span class="no-actions">No actions available</span>
+            </th:block>
+          </td>
+        </tr>
 
-      </tr>
+        <!-- 🔽 Expandable Row with Table Structure -->
+        <tr th:id="'details-' + ${user.userId}" class="details-row" style="display: none;">
+          <td colspan="7">
+            <div class="user-details-panel">
+              <div class="details-table-container">
+                <table class="details-table">
+                  <thead>
+                  <tr>
+                    <th class="section-header cards">💳 Cards</th>
+                    <th class="section-header accounts">🏦 Accounts</th>
+                    <th class="section-header loans">💸 Loans</th>
+                    <th class="section-header bills">🧾 Bills</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <!-- Summary Row -->
+                  <tr class="section-summary">
+                    <td th:text="'Total: ' + ${#lists.size(user.cards)} + ' cards'">Total: 0 cards</td>
+                    <td th:text="'Total: ' + ${#lists.size(user.accounts)} + ' accounts'">Total: 0 accounts</td>
+                    <td th:text="'Total: ' + ${#lists.size(user.loans)} + ' loans'">Total: 0 loans</td>
+                    <td th:text="'Total: ' + ${#lists.size(user.bills)} + ' bills'">Total: 0 bills</td>
+                  </tr>
+
+                  <!-- Dynamic Content Rows -->
+                  <th:block th:with="maxRows=${T(java.lang.Math).max(T(java.lang.Math).max(#lists.size(user.cards ?: {}), #lists.size(user.accounts ?: {})), T(java.lang.Math).max(#lists.size(user.loans ?: {}), #lists.size(user.bills ?: {})))}">
+                    <th:block th:if="${maxRows == 0}">
+                      <tr>
+                        <td class="empty-state">No cards</td>
+                        <td class="empty-state">No accounts</td>
+                        <td class="empty-state">No loans</td>
+                        <td class="empty-state">No bills</td>
+                      </tr>
+                    </th:block>
+
+                    <th:block th:if="${maxRows > 0}">
+                      <th:block th:each="i : ${#numbers.sequence(0, maxRows - 1)}">
+                        <tr class="item-row">
+                          <!-- Cards Column -->
+                          <td>
+                            <th:block th:if="${i < #lists.size(user.cards ?: {})}">
+                              <div th:with="card=${user.cards[i]}">
+                                <strong th:text="${card.cardType}">Card Type</strong>
+                                <div class="detail-line">
+                                  <span class="detail-label">Status:</span>
+                                  <span th:text="${card.status}"
+                                        th:class="${card.status == 'ACTIVE' ? 'status-active' :
+                                                     card.status == 'INACTIVE' ? 'status-inactive' :
+                                                     'status-pending'}">Status</span>
+                                </div>
+                                <div class="detail-line">
+                                  <span class="detail-label">Number:</span>
+                                  <span th:text="${card.cardNumber}" class="card-number">Number</span>
+                                </div>
+                                <div class="detail-line">
+                                  <span class="detail-label">Holder:</span>
+                                  <span th:text="${card.cardholderName}" class="detail-value">Holder</span>
+                                </div>
+                              </div>
+                            </th:block>
+                            <span th:if="${i >= #lists.size(user.cards ?: {})}" class="empty-state">-</span>
+                          </td>
+
+                          <!-- Accounts Column -->
+                          <td>
+                            <th:block th:if="${i < #lists.size(user.accounts ?: {})}">
+                              <div th:with="account=${user.accounts[i]}">
+                                <strong th:text="${account.accountType}">Account Type</strong>
+                                <div class="detail-line">
+                                  <span class="detail-label">Balance:</span>
+                                  <span th:text="'₹' + ${account.balance}" class="amount-value">Balance</span>
+                                </div>
+                                <div class="detail-line">
+                                  <span class="detail-label">Status:</span>
+                                  <span th:text="${account.status}"
+                                        th:class="${account.status == 'ACTIVE' ? 'status-active' :
+                                                     account.status == 'INACTIVE' ? 'status-inactive' :
+                                                     'status-pending'}">Status</span>
+                                </div>
+                                <div class="detail-line">
+                                  <span class="detail-label">Acc#:</span>
+                                  <span th:text="${account.accountNumber}" class="account-number">Account Number</span>
+                                </div>
+                              </div>
+                            </th:block>
+                            <span th:if="${i >= #lists.size(user.accounts ?: {})}" class="empty-state">-</span>
+                          </td>
+
+                          <!-- Loans Column -->
+                          <td>
+                            <th:block th:if="${i < #lists.size(user.loans ?: {})}">
+                              <div th:with="loan=${user.loans[i]}">
+                                <strong th:text="'₹' + ${loan.loanAmount}" class="amount-value">Amount</strong>
+                                <div class="detail-line">
+                                  <span class="detail-label">Status:</span>
+                                  <span th:text="${loan.status}"
+                                        th:class="${loan.status == 'APPROVED' ? 'status-approved' :
+                                                     loan.status == 'REJECTED' ? 'status-rejected' :
+                                                     'status-pending'}">Status</span>
+                                </div>
+                                <div class="detail-line">
+                                  <span class="detail-label">Purpose:</span>
+                                  <span th:text="${loan.purpose}" class="detail-value">Purpose</span>
+                                </div>
+                                <div class="detail-line">
+                                  <span class="detail-label">Type:</span>
+                                  <span th:text="${loan.loanType}" class="detail-value">Type</span>
+                                </div>
+                              </div>
+                            </th:block>
+                            <span th:if="${i >= #lists.size(user.loans ?: {})}" class="empty-state">-</span>
+                          </td>
+
+                          <!-- Bills Column -->
+                          <td>
+                            <th:block th:if="${i < #lists.size(user.bills ?: {})}">
+                              <div th:with="bill=${user.bills[i]}">
+                                <strong th:text="${bill.billerName}">Biller</strong>
+                                <div class="detail-line">
+                                  <span class="detail-label">Type:</span>
+                                  <span th:text="${bill.billType}" class="detail-value">Type</span>
+                                </div>
+                                <div class="detail-line">
+                                  <span class="detail-label">Amount:</span>
+                                  <span th:text="'₹' + ${bill.amount}" class="amount-value">Amount</span>
+                                </div>
+                                <div class="detail-line">
+                                  <span class="detail-label">Due:</span>
+                                  <span th:text="${bill.dueDate}" class="detail-value">Due Date</span>
+                                </div>
+                                <div class="detail-line">
+                                  <span class="detail-label">Status:</span>
+                                  <span th:text="${bill.status}"
+                                        th:class="${bill.status == 'PAID' ? 'status-active' :
+                                                     bill.status == 'OVERDUE' ? 'status-rejected' :
+                                                     'status-pending'}">Status</span>
+                                </div>
+                              </div>
+                            </th:block>
+                            <span th:if="${i >= #lists.size(user.bills ?: {})}" class="empty-state">-</span>
+                          </td>
+                        </tr>
+                      </th:block>
+                    </th:block>
+                  </th:block>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </th:block>
       </tbody>
     </table>
   </div>
@@ -367,6 +788,16 @@
     <a href="/admin/dashboard" class="btn">⬅ Go Back to Dashboard</a>
   </div>
 </div>
+
+<!-- 🔘 Toggle Function -->
+<script>
+  function toggleDetails(id) {
+    const row = document.getElementById(id);
+    if (row) {
+      row.style.display = (row.style.display === 'none') ? 'table-row' : 'none';
+    }
+  }
+</script>
 
 </body>
 </html>

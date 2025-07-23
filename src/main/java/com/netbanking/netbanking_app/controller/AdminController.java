@@ -31,6 +31,9 @@ public class AdminController {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private BillPaymentService billPaymentService;
+
 
     @Autowired
     private LoanService loanService;
@@ -146,6 +149,13 @@ public class AdminController {
     @GetMapping("/users")
     public String showUserList(Model model) {
         List<User> users = userService.getAllUsers();
+        for (User user : users) {
+            user.setAccounts(accountService.getAccountsByUserId(user.getUserId()));
+            user.setCards(cardService.getCardsByUserId(user.getUserId()));
+            user.setLoans(loanService.getLoansByUserId(user.getUserId()));
+            user.setBills(billPaymentService.getBillsByUserId(user.getUserId()));
+
+        }
         model.addAttribute("users", users);
         return "admin/user-management";
     }

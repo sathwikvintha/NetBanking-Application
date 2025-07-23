@@ -11,4 +11,6 @@ public interface LoanService {
     List<Loan> getRequestsByStatus(String status);
     void updateLoanStatus(Long loanId, String newStatus);
     List<Loan> getAllRequests();
+    List<Loan> getLoansByUserId(Long userId);
+
 }

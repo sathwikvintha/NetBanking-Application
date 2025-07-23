@@ -67,4 +67,8 @@ public class Card {
     @ManyToOne
     @JoinColumn(name = "USER_ID", referencedColumnName = "USER_ID", nullable = false)
     private User user;
+
+    public String getCardType() {
+        return cardType;
+    }
 }

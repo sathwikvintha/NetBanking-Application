@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -44,6 +45,8 @@ public class BillPaymentServiceImpl implements BillPaymentService {
 
     @Autowired
     private UserService userService;
+
+
 
     @Override
     public Payment payBill(BillPaymentRequest request) {
@@ -134,4 +137,10 @@ public class BillPaymentServiceImpl implements BillPaymentService {
 
         return savedPayment;
     }
+
+    @Override
+    public List<Bill> getBillsByUserId(Long userId) {
+        return billRepository.findByUserId(userId);
+    }
+
 }
