@@ -1,0 +1,87 @@
+create or replace TRIGGER audit_transactions
+AFTER INSERT OR UPDATE OR DELETE ON Transactions
+FOR EACH ROW
+BEGIN
+    IF INSERTING THEN
+        INSERT INTO AuditLog (table_name, operation, account_id, changed_on)
+        VALUES ('TRANSACTIONS', 'INSERT', :NEW.account_id, SYSTIMESTAMP);
+
+    ELSIF UPDATING THEN
+        INSERT INTO AuditLog (table_name, operation, account_id, changed_on)
+        VALUES ('TRANSACTIONS', 'UPDATE', :NEW.account_id, SYSTIMESTAMP);
+
+    ELSIF DELETING THEN
+        INSERT INTO AuditLog (table_name, operation, account_id, changed_on)
+        VALUES ('TRANSACTIONS', 'DELETE', :OLD.account_id, SYSTIMESTAMP);
+    END IF;
+END;
+
+
+
+
+
+
+create or replace TRIGGER log_audit_insert
+AFTER INSERT ON loan_repayment_transaction
+FOR EACH ROW
+BEGIN
+    INSERT INTO audit_logs (action, timestamp)
+    VALUES ('INSERT', CURRENT_TIMESTAMP);
+END;
+
+
+
+
+
+create or replace TRIGGER trg_transactions_audit
+    AFTER INSERT OR UPDATE OR DELETE ON transactions
+    FOR EACH ROW
+BEGIN
+    CASE
+        WHEN INSERTING THEN
+            INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values)
+            VALUES ((SELECT user_id FROM accounts WHERE account_id = :NEW.account_id), 
+                   'INSERT', 'TRANSACTIONS', :NEW.transaction_id, 
+                   'amount: ' || :NEW.amount || ', type: ' || :NEW.transaction_type);
+
+        WHEN UPDATING THEN
+            INSERT INTO audit_logs (user_id, action, table_name, record_id, old_values, new_values)
+            VALUES ((SELECT user_id FROM accounts WHERE account_id = :NEW.account_id),
+                   'UPDATE', 'TRANSACTIONS', :NEW.transaction_id,
+                   'Old - amount: ' || :OLD.amount || ', status: ' || :OLD.status,
+                   'New - amount: ' || :NEW.amount || ', status: ' || :NEW.status);
+
+        WHEN DELETING THEN
+            INSERT INTO audit_logs (user_id, action, table_name, record_id, old_values)
+            VALUES ((SELECT user_id FROM accounts WHERE account_id = :OLD.account_id),
+                   'DELETE', 'TRANSACTIONS', :OLD.transaction_id,
+                   'amount: ' || :OLD.amount || ', type: ' || :OLD.transaction_type);
+    END CASE;
+END;
+
+
+
+
+
+create or replace TRIGGER trg_users_audit
+    AFTER INSERT OR UPDATE OR DELETE ON users
+    FOR EACH ROW
+BEGIN
+    CASE
+        WHEN INSERTING THEN
+            INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values)
+            VALUES (:NEW.user_id, 'INSERT', 'USERS', :NEW.user_id, 
+                   'username: ' || :NEW.username || ', email: ' || :NEW.email);
+
+        WHEN UPDATING THEN
+            INSERT INTO audit_logs (user_id, action, table_name, record_id, old_values, new_values)
+            VALUES (:NEW.user_id, 'UPDATE', 'USERS', :NEW.user_id,
+                   'Old - username: ' || :OLD.username || ', email: ' || :OLD.email,
+                   'New - username: ' || :NEW.username || ', email: ' || :NEW.email);
+
+        WHEN DELETING THEN
+            INSERT INTO audit_logs (user_id, action, table_name, record_id, old_values)
+            VALUES (:OLD.user_id, 'DELETE', 'USERS', :OLD.user_id,
+                   'username: ' || :OLD.username || ', email: ' || :OLD.email);
+    END CASE;
+END;
