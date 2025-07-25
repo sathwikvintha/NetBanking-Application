@@ -1,0 +1,80 @@
+create or replace FUNCTION fn_calculate_emi(
+    p_principal IN NUMBER,
+    p_rate IN NUMBER,
+    p_tenure IN NUMBER
+) RETURN NUMBER AS
+    v_monthly_rate NUMBER;
+    v_emi NUMBER;
+BEGIN
+    v_monthly_rate := p_rate / (12 * 100);
+
+    IF v_monthly_rate = 0 THEN
+        v_emi := p_principal / p_tenure;
+    ELSE
+        v_emi := p_principal * v_monthly_rate * POWER(1 + v_monthly_rate, p_tenure) / 
+                 (POWER(1 + v_monthly_rate, p_tenure) - 1);
+    END IF;
+
+    RETURN ROUND(v_emi, 2);
+END;
+
+
+
+
+
+create or replace FUNCTION fn_get_account_balance(
+    p_account_id IN NUMBER
+) RETURN NUMBER AS
+    v_balance NUMBER;
+BEGIN
+    SELECT balance INTO v_balance 
+    FROM accounts 
+    WHERE account_id = p_account_id AND status = 'ACTIVE';
+
+    RETURN v_balance;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN -1; -- Account not found or inactive
+    WHEN OTHERS THEN
+        RETURN -2; -- Other error
+END;
+
+
+
+
+
+create or replace FUNCTION fn_validate_card(
+    p_card_number IN VARCHAR2,
+    p_cvv IN VARCHAR2,
+    p_expiry_date IN DATE
+) RETURN VARCHAR2 AS
+    v_count NUMBER;
+    v_status VARCHAR2(20);
+BEGIN
+    SELECT COUNT(*), MAX(status) INTO v_count, v_status
+    FROM cards 
+    WHERE card_number = p_card_number 
+    AND cvv = p_cvv 
+    AND expiry_date >= SYSDATE
+    AND status = 'ACTIVE';
+
+    IF v_count = 1 THEN
+        RETURN 'VALID';
+    ELSIF v_count = 0 THEN
+        -- Check if card exists but invalid
+        SELECT COUNT(*) INTO v_count FROM cards WHERE card_number = p_card_number;
+        IF v_count > 0 THEN
+            RETURN 'INVALID_DETAILS';
+        ELSE
+            RETURN 'CARD_NOT_FOUND';
+        END IF;
+    ELSE
+        RETURN 'MULTIPLE_CARDS_FOUND';
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN 'VALIDATION_ERROR';
+END;
+
