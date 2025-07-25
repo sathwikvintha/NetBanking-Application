@@ -1,6 +1,7 @@
 # Netbanking-app
 It is a net banking application where it has two web logins(Admin & Customer), It has all the basic activities performed in net-banking application
-<img width="959" height="599" alt="Initial Login" src="https://github.com/user-attachments/assets/0048cc4b-1215-4521-9af0-01cfa26cb731" />
+<img width="959" height="599" alt="Initial Login" src="https://github.com/user-attachments/assets/14b24742-cf0d-468a-8e09-a68a18688d72" />
+
 
 This is Login where both Customer and Admin Logs in, it then will redirect to their respective pages
 
