@@ -1,0 +1,982 @@
+create or replace PROCEDURE add_card(
+    p_user_id         IN NUMBER,
+    p_account_id      IN NUMBER,
+    p_card_type       IN VARCHAR2,
+    p_card_number     IN VARCHAR2,
+    p_cardholder_name IN VARCHAR2,
+    p_expiry_date     IN DATE,
+    p_cvv             IN VARCHAR2
+) AS
+BEGIN
+    INSERT INTO CARDS (
+        CARD_ID, USER_ID, ACCOUNT_ID, CARD_TYPE, CARD_NUMBER, CARDHOLDER_NAME, EXPIRY_DATE, CVV, STATUS
+    ) VALUES (
+        CARDS_SEQ.NEXTVAL,
+        p_user_id,
+        p_account_id,
+        UPPER(p_card_type),
+        p_card_number,
+        p_cardholder_name,
+        p_expiry_date,
+        p_cvv,
+        'ACTIVE' -- ✅ fixed here
+    );
+
+    DBMS_OUTPUT.PUT_LINE('New ' || p_card_type || ' card added for ' || p_cardholder_name);
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error while adding card: ' || SQLERRM);
+END;
+
+
+
+
+
+
+
+
+
+
+create or replace PROCEDURE apply_loan (
+    p_account_id IN NUMBER,
+    p_user_id IN NUMBER,
+    p_loan_amount IN NUMBER,
+    p_interest_rate IN NUMBER,
+    p_loan_duration IN NUMBER,  -- in months
+    p_loan_type IN VARCHAR2,
+    p_purpose IN VARCHAR2
+)
+IS
+    v_monthly_emi NUMBER;
+    v_start_date DATE := SYSDATE;
+    v_end_date DATE;
+BEGIN
+    -- Calculate end date
+    v_end_date := ADD_MONTHS(v_start_date, p_loan_duration);
+
+    -- Calculate EMI using a simple formula (adjust as needed)
+    v_monthly_emi := (p_loan_amount + (p_loan_amount * p_interest_rate * p_loan_duration / 1200)) / p_loan_duration;
+
+    -- Insert the loan into the LOANS table
+    INSERT INTO loans (
+        loan_id,
+        account_id,
+        user_id,
+        loan_amount,
+        interest_rate,
+        loan_duration,
+        loan_type,
+        start_date,
+        end_date,
+        monthly_emi,
+        outstanding_amount,
+        purpose,
+        status,
+        created_at,
+        updated_at
+    )
+    VALUES (
+        LOAN_SEQ.NEXTVAL, -- Make sure this sequence exists
+        p_account_id,
+        p_user_id,
+        p_loan_amount,
+        p_interest_rate,
+        p_loan_duration,
+        p_loan_type,
+        v_start_date,
+        v_end_date,
+        v_monthly_emi,
+        p_loan_amount,
+        p_purpose,
+        'ACTIVE',
+        SYSTIMESTAMP,
+        SYSTIMESTAMP
+    );
+
+    DBMS_OUTPUT.PUT_LINE('Loan applied successfully.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error while applying for loan: ' || SQLERRM);
+END;
+
+
+
+
+
+
+create or replace PROCEDURE BLOCK_CARD (
+    P_CARD_ID IN NUMBER
+)
+IS
+BEGIN
+    UPDATE CARDS
+    SET STATUS = 'BLOCKED'
+    WHERE CARD_ID = P_CARD_ID;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Card not found.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Card ' || P_CARD_ID || ' has been blocked.');
+    END IF;
+END;
+
+
+
+
+
+create or replace PROCEDURE create_account(
+    p_user_id         IN ACCOUNTS.USER_ID%TYPE,
+    p_type            IN ACCOUNTS.ACCOUNT_TYPE%TYPE,
+    p_balance         IN ACCOUNTS.BALANCE%TYPE,
+    p_interest_rate   IN ACCOUNTS.INTEREST_RATE%TYPE,
+    p_branch_code     IN ACCOUNTS.BRANCH_CODE%TYPE,
+    p_ifsc_code       IN ACCOUNTS.IFSC_CODE%TYPE,
+    p_branch_name     IN ACCOUNTS.BRANCH_NAME%TYPE,
+    p_status          IN ACCOUNTS.STATUS%TYPE,
+    p_min_balance     IN ACCOUNTS.MINIMUM_BALANCE%TYPE
+) AS
+    v_account_number  VARCHAR2(20);
+BEGIN
+    -- Generate a random 10-digit account number
+    v_account_number := TO_CHAR(DBMS_RANDOM.VALUE(1000000000, 9999999999), '9999999999');
+
+    INSERT INTO ACCOUNTS (
+        ACCOUNT_ID,
+        USER_ID,
+        ACCOUNT_NUMBER,
+        ACCOUNT_TYPE,
+        BALANCE,
+        INTEREST_RATE,
+        OPENING_DATE,
+        BRANCH_CODE,
+        IFSC_CODE,
+        BRANCH_NAME,
+        STATUS,
+        MINIMUM_BALANCE,
+        CREATED_AT,
+        UPDATED_AT
+    ) VALUES (
+        ACCOUNT_SEQ.NEXTVAL,
+        p_user_id,
+        v_account_number,
+        p_type,
+        p_balance,
+        p_interest_rate,
+        SYSDATE,
+        p_branch_code,
+        p_ifsc_code,
+        p_branch_name,
+        p_status,
+        p_min_balance,
+        SYSDATE,
+        SYSDATE
+    );
+
+    DBMS_OUTPUT.PUT_LINE('Account created successfully. Account Number: ' || v_account_number);
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error creating account: ' || SQLERRM);
+END;
+
+
+
+
+
+create or replace PROCEDURE CREATE_USER (
+    p_username         IN VARCHAR2,
+    p_password         IN VARCHAR2,
+    p_email            IN VARCHAR2,
+    p_phone            IN VARCHAR2,
+    p_name             IN VARCHAR2,
+    p_address          IN VARCHAR2,
+    p_city             IN VARCHAR2,
+    p_dob              IN DATE,
+    p_parent_num       IN VARCHAR2 DEFAULT NULL,
+    p_role             IN VARCHAR2,
+    p_is_active        IN CHAR DEFAULT 'Y'
+)
+IS
+    v_user_id          USERS.USER_ID%TYPE;
+BEGIN
+    -- Get next user_id from sequence
+    SELECT USER_ID_SEQ.NEXTVAL INTO v_user_id FROM dual;
+
+    -- Insert new user
+    INSERT INTO USERS (
+        USER_ID, USERNAME, PASSWORD, EMAIL, PHONE, NAME,
+        ADDRESS, CITY, DOB, PARENT_NUM, ROLE,
+        KYC_STATUS, REGISTRATION_DATE, LAST_LOGIN,
+        IS_ACTIVE, CREATED_AT, UPDATED_AT
+    ) VALUES (
+        v_user_id, p_username, p_password, p_email, p_phone, p_name,
+        p_address, p_city, p_dob, p_parent_num, p_role,
+        'PENDING', SYSDATE, NULL,
+        p_is_active, SYSDATE, SYSDATE
+    );
+
+    DBMS_OUTPUT.PUT_LINE('User created successfully with USER_ID = ' || v_user_id);
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error creating user: ' || SQLERRM);
+END;
+
+
+
+
+create or replace PROCEDURE display_transactions(p_account_id IN NUMBER) AS
+    CURSOR txn_cur IS
+        SELECT * FROM TRANSACTIONS WHERE ACCOUNT_ID = p_account_id ORDER BY CREATED_AT DESC;
+
+    v_txn txn_cur%ROWTYPE;
+BEGIN
+    OPEN txn_cur;
+    LOOP
+        FETCH txn_cur INTO v_txn;
+        EXIT WHEN txn_cur%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE('Txn ID: ' || v_txn.TRANSACTION_ID ||
+                             ', Type: ' || v_txn.TRANSACTION_TYPE ||
+                             ', Amount: ₹' || v_txn.AMOUNT ||
+                             ', Date: ' || v_txn.CREATED_AT);
+    END LOOP;
+    CLOSE txn_cur;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error displaying transactions: ' || SQLERRM);
+END;
+
+
+
+
+create or replace PROCEDURE display_user(p_user_id IN NUMBER) AS
+    v_user USERS%ROWTYPE;
+BEGIN
+    SELECT * INTO v_user FROM USERS WHERE USER_ID = p_user_id;
+
+    DBMS_OUTPUT.PUT_LINE('User ID: ' || v_user.USER_ID);
+    DBMS_OUTPUT.PUT_LINE('Username: ' || v_user.USERNAME);
+    DBMS_OUTPUT.PUT_LINE('Email: ' || v_user.EMAIL);
+    DBMS_OUTPUT.PUT_LINE('Phone: ' || v_user.PHONE);
+    DBMS_OUTPUT.PUT_LINE('Address: ' || v_user.ADDRESS);
+    DBMS_OUTPUT.PUT_LINE('City: ' || v_user.CITY);
+    DBMS_OUTPUT.PUT_LINE('Date of Birth: ' || TO_CHAR(v_user.DOB, 'DD-MON-YYYY'));
+    DBMS_OUTPUT.PUT_LINE('Registration Date: ' || TO_CHAR(v_user.REGISTRATION_DATE, 'DD-MON-YYYY'));
+    DBMS_OUTPUT.PUT_LINE('Created At: ' || TO_CHAR(v_user.CREATED_AT, 'DD-MON-YYYY HH24:MI:SS'));
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('User not found.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error displaying user: ' || SQLERRM);
+END;
+
+
+
+
+create or replace PROCEDURE FUND_TRANSFER (
+    P_FROM_ACCOUNT_ID   IN NUMBER,
+    P_TO_ACCOUNT_ID     IN NUMBER,
+    P_AMOUNT            IN NUMBER
+)
+IS
+    V_FROM_BALANCE NUMBER;
+BEGIN
+    -- Check if FROM account has sufficient balance
+    SELECT BALANCE INTO V_FROM_BALANCE
+    FROM ACCOUNTS
+    WHERE ACCOUNT_ID = P_FROM_ACCOUNT_ID
+    FOR UPDATE;
+
+    IF V_FROM_BALANCE < P_AMOUNT THEN
+        DBMS_OUTPUT.PUT_LINE('Transfer failed: Insufficient funds.');
+        RETURN;
+    END IF;
+
+    -- Deduct from source account
+    UPDATE ACCOUNTS
+    SET BALANCE = BALANCE - P_AMOUNT
+    WHERE ACCOUNT_ID = P_FROM_ACCOUNT_ID;
+
+    -- Add to destination account
+    UPDATE ACCOUNTS
+    SET BALANCE = BALANCE + P_AMOUNT
+    WHERE ACCOUNT_ID = P_TO_ACCOUNT_ID;
+
+    -- Record the transaction for sender
+    INSERT INTO TRANSACTIONS (
+        ACCOUNT_ID, AMOUNT, TRANSACTION_TYPE, DESCRIPTION, TRANSACTION_DATE
+    ) VALUES (
+        P_FROM_ACCOUNT_ID, P_AMOUNT, 'DEBIT', 'Fund transfer to Account ' || P_TO_ACCOUNT_ID, SYSDATE
+    );
+
+    -- Record the transaction for receiver
+    INSERT INTO TRANSACTIONS (
+        ACCOUNT_ID, AMOUNT, TRANSACTION_TYPE, DESCRIPTION, TRANSACTION_DATE
+    ) VALUES (
+        P_TO_ACCOUNT_ID, P_AMOUNT, 'CREDIT', 'Fund transfer from Account ' || P_FROM_ACCOUNT_ID, SYSDATE
+    );
+
+    DBMS_OUTPUT.PUT_LINE('Fund transfer successful.');
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('One of the account IDs does not exist.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Transfer failed due to an error: ' || SQLERRM);
+END;
+
+
+
+
+create or replace PROCEDURE LOGIN_USER (
+    P_USERNAME IN VARCHAR2,
+    P_PASSWORD IN VARCHAR2
+)
+IS
+    V_COUNT NUMBER := 0;
+BEGIN
+    SELECT COUNT(*) INTO V_COUNT
+    FROM USERS
+    WHERE USERNAME = P_USERNAME AND PASSWORD = P_PASSWORD;
+
+    IF V_COUNT = 1 THEN
+        DBMS_OUTPUT.PUT_LINE('Login successful for user: ' || P_USERNAME);
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Login failed: Invalid username or password.');
+    END IF;
+END;
+
+
+
+
+
+create or replace PROCEDURE PAY_BILL (
+    p_bill_id   IN NUMBER,
+    p_amount    IN NUMBER,
+    p_method    IN VARCHAR2 DEFAULT 'ONLINE'
+)
+IS
+    v_account_id ACCOUNTS.ACCOUNT_ID%TYPE;
+    v_user_id    BILLS.USER_ID%TYPE;
+    v_balance    ACCOUNTS.BALANCE%TYPE;
+    v_status     VARCHAR2(20);
+    v_conf_no    VARCHAR2(50);
+    v_payment_id NUMBER;
+    v_bill_amount NUMBER;
+BEGIN
+    -- Get USER_ID, STATUS, and AMOUNT from BILLS
+    SELECT USER_ID, STATUS, AMOUNT
+    INTO v_user_id, v_status, v_bill_amount
+    FROM BILLS
+    WHERE BILL_ID = p_bill_id;
+
+    IF v_status = 'PAID' THEN
+        DBMS_OUTPUT.PUT_LINE('Bill is already paid.');
+        RETURN;
+    END IF;
+
+    -- Validate payment amount
+    IF p_amount != v_bill_amount THEN
+        DBMS_OUTPUT.PUT_LINE('Incorrect payment amount. Expected: ' || v_bill_amount);
+        RETURN;
+    END IF;
+
+    -- Get ACCOUNT_ID from ACCOUNTS table
+    SELECT ACCOUNT_ID INTO v_account_id
+    FROM ACCOUNTS
+    WHERE USER_ID = v_user_id
+    FETCH FIRST 1 ROWS ONLY;
+
+    -- Get balance
+    SELECT BALANCE INTO v_balance
+    FROM ACCOUNTS
+    WHERE ACCOUNT_ID = v_account_id;
+
+    IF v_balance < p_amount + 5 THEN
+        DBMS_OUTPUT.PUT_LINE('Insufficient balance.');
+        RETURN;
+    END IF;
+
+    -- Generate confirmation number
+    v_conf_no := 'CONF' || TO_CHAR(SYSTIMESTAMP, 'YYYYMMDDHH24MISSFF3');
+
+    -- Get new payment ID
+    SELECT NVL(MAX(PAYMENT_ID), 0) + 1 INTO v_payment_id FROM PAYMENTS;
+
+    -- Insert payment record
+    INSERT INTO PAYMENTS (
+        PAYMENT_ID, BILL_ID, ACCOUNT_ID, PAYMENT_DATE,
+        PAYMENT_METHOD, AMOUNT, STATUS, TRANSACTION_FEE,
+        CONFIRMATION_NUMBER, CREATED_AT
+    )
+    VALUES (
+        v_payment_id, p_bill_id, v_account_id, SYSTIMESTAMP,
+        UPPER(p_method), p_amount, 'COMPLETED', 5,
+        v_conf_no, SYSTIMESTAMP
+    );
+
+    -- Deduct amount + fee from account
+    UPDATE ACCOUNTS
+    SET BALANCE = BALANCE - (p_amount + 5)
+    WHERE ACCOUNT_ID = v_account_id;
+
+    -- Mark bill as paid
+    UPDATE BILLS
+    SET STATUS = 'PAID'
+    WHERE BILL_ID = p_bill_id;
+
+    DBMS_OUTPUT.PUT_LINE('Payment successful. Confirmation No: ' || v_conf_no);
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Bill or account not found.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END;
+
+
+
+
+
+create or replace PROCEDURE SEND_NOTIFICATION (
+    P_USER_ID           IN NUMBER,
+    P_MESSAGE           IN CLOB,
+    P_NOTIFICATION_TYPE IN VARCHAR2 DEFAULT 'INFO',
+    P_PRIORITY          IN VARCHAR2 DEFAULT 'MEDIUM'
+)
+IS
+BEGIN
+    INSERT INTO NOTIFICATIONS (
+        NOTIFICATION_ID,
+        USER_ID,
+        MESSAGE,
+        NOTIFICATION_TYPE,
+        SENT_AT,
+        IS_READ,
+        PRIORITY,
+        CREATED_AT
+    ) VALUES (
+        ISEQ$$_71393.NEXTVAL,
+        P_USER_ID,
+        P_MESSAGE,
+        P_NOTIFICATION_TYPE,
+        CURRENT_TIMESTAMP,
+        'N',
+        P_PRIORITY,
+        CURRENT_TIMESTAMP
+    );
+
+    DBMS_OUTPUT.PUT_LINE('Notification sent to user ID: ' || P_USER_ID);
+END;
+
+
+
+
+
+create or replace PROCEDURE sp_create_account(
+    p_user_id IN NUMBER,
+    p_account_type IN VARCHAR2,
+    p_initial_balance IN NUMBER DEFAULT 1000,
+    p_branch_code IN VARCHAR2,
+    p_ifsc_code IN VARCHAR2,
+    p_branch_name IN VARCHAR2,
+    p_result OUT VARCHAR2,
+    p_account_number OUT VARCHAR2
+) AS
+    v_account_number VARCHAR2(20);
+    v_user_exists NUMBER;
+BEGIN
+    -- Check if user exists
+    SELECT COUNT(*) INTO v_user_exists FROM users WHERE user_id = p_user_id;
+
+    IF v_user_exists = 0 THEN
+        p_result := 'USER_NOT_FOUND';
+        RETURN;
+    END IF;
+
+    -- Generate account number
+    v_account_number := '1234' || LPAD(p_user_id, 4, '0') || TO_CHAR(SYSDATE, 'YYYYMMDD') || LPAD(DBMS_RANDOM.VALUE(1, 9999), 4, '0');
+
+    BEGIN
+        INSERT INTO accounts (
+            user_id, account_number, account_type, balance, 
+            branch_code, ifsc_code, branch_name, status
+        ) VALUES (
+            p_user_id, v_account_number, p_account_type, p_initial_balance,
+            p_branch_code, p_ifsc_code, p_branch_name, 'ACTIVE'
+        );
+
+        -- Insert initial deposit transaction if balance > 0
+        IF p_initial_balance > 0 THEN
+            INSERT INTO transactions (
+                account_id, transaction_type, amount, description, 
+                balance_before, balance_after, reference_number, channel
+            ) VALUES (
+                (SELECT account_id FROM accounts WHERE account_number = v_account_number),
+                'CREDIT', p_initial_balance, 'Initial Deposit',
+                0, p_initial_balance, 'INIT' || v_account_number, 'BRANCH'
+            );
+        END IF;
+
+        COMMIT;
+        p_result := 'SUCCESS';
+        p_account_number := v_account_number;
+
+    EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+            p_result := 'ACCOUNT_NUMBER_EXISTS';
+        WHEN OTHERS THEN
+            ROLLBACK;
+            p_result := 'ACCOUNT_CREATION_FAILED: ' || SQLERRM;
+    END;
+END;
+
+
+
+
+create or replace PROCEDURE sp_generate_statement(
+    p_account_id IN NUMBER,
+    p_month IN NUMBER,
+    p_year IN NUMBER,
+    p_result OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_result FOR
+    SELECT 
+        t.transaction_date,
+        t.transaction_type,
+        t.description,
+        CASE WHEN t.transaction_type IN ('DEBIT', 'WITHDRAWAL') THEN t.amount ELSE 0 END AS debit_amount,
+        CASE WHEN t.transaction_type IN ('CREDIT', 'DEPOSIT') THEN t.amount ELSE 0 END AS credit_amount,
+        t.balance_after,
+        t.reference_number
+    FROM transactions t
+    WHERE t.account_id = p_account_id
+    AND EXTRACT(MONTH FROM t.transaction_date) = p_month
+    AND EXTRACT(YEAR FROM t.transaction_date) = p_year
+    AND t.status = 'COMPLETED'
+    ORDER BY t.transaction_date;
+END;
+
+
+
+create or replace PROCEDURE sp_manage_card_status(
+    p_card_id IN NUMBER,
+    p_new_status IN VARCHAR2,
+    p_user_id IN NUMBER,
+    p_result OUT VARCHAR2
+) AS
+    v_card_owner NUMBER;
+BEGIN
+    -- Verify card ownership
+    SELECT u.user_id INTO v_card_owner
+    FROM cards c
+    JOIN accounts a ON c.account_id = a.account_id
+    JOIN users u ON a.user_id = u.user_id
+    WHERE c.card_id = p_card_id;
+
+    IF v_card_owner != p_user_id THEN
+        p_result := 'UNAUTHORIZED_ACCESS';
+        RETURN;
+    END IF;
+
+    -- Update card status
+    UPDATE cards 
+    SET status = p_new_status, updated_at = CURRENT_TIMESTAMP
+    WHERE card_id = p_card_id;
+
+    IF SQL%ROWCOUNT = 1 THEN
+        COMMIT;
+        p_result := 'SUCCESS';
+
+        -- Log the action
+        INSERT INTO audit_logs (user_id, action, table_name, record_id, details)
+        VALUES (p_user_id, 'CARD_STATUS_CHANGE', 'CARDS', p_card_id, 
+               'Status changed to: ' || p_new_status);
+        COMMIT;
+    ELSE
+        p_result := 'CARD_NOT_FOUND';
+    END IF;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        p_result := 'CARD_NOT_FOUND';
+    WHEN OTHERS THEN
+        ROLLBACK;
+        p_result := 'STATUS_UPDATE_FAILED: ' || SQLERRM;
+END;
+
+
+
+
+create or replace PROCEDURE sp_pay_bill(
+    p_bill_id IN NUMBER,
+    p_account_id IN NUMBER,
+    p_payment_method IN VARCHAR2 DEFAULT 'ONLINE',
+    p_result OUT VARCHAR2
+) AS
+    v_bill_amount NUMBER;
+    v_account_balance NUMBER;
+    v_ref_number VARCHAR2(50);
+BEGIN
+    -- Generate reference number
+    v_ref_number := 'BILL' || TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') || p_bill_id;
+
+    -- Get bill amount
+    SELECT amount INTO v_bill_amount 
+    FROM bills 
+    WHERE bill_id = p_bill_id AND status = 'UNPAID';
+
+    -- Check account balance
+    SELECT balance INTO v_account_balance 
+    FROM accounts 
+    WHERE account_id = p_account_id AND status = 'ACTIVE';
+
+    IF v_account_balance < v_bill_amount THEN
+        p_result := 'INSUFFICIENT_BALANCE';
+        RETURN;
+    END IF;
+
+    -- Start transaction
+    SAVEPOINT bill_payment_start;
+
+    BEGIN
+        -- Insert payment record
+        INSERT INTO payments (bill_id, account_id, payment_method, amount, reference_number, status)
+        VALUES (p_bill_id, p_account_id, p_payment_method, v_bill_amount, v_ref_number, 'COMPLETED');
+
+        -- Update account balance
+        UPDATE accounts 
+        SET balance = balance - v_bill_amount, updated_at = CURRENT_TIMESTAMP
+        WHERE account_id = p_account_id;
+
+        -- Update bill status
+        UPDATE bills 
+        SET status = 'PAID', payment_date = SYSDATE, updated_at = CURRENT_TIMESTAMP
+        WHERE bill_id = p_bill_id;
+
+        -- Insert transaction record
+        INSERT INTO transactions (account_id, transaction_type, amount, description, balance_before, balance_after, reference_number, channel)
+        VALUES (p_account_id, 'DEBIT', v_bill_amount, 'Bill Payment', 
+                v_account_balance, v_account_balance - v_bill_amount, v_ref_number, 'ONLINE');
+
+        COMMIT;
+        p_result := 'SUCCESS';
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK TO bill_payment_start;
+            p_result := 'PAYMENT_FAILED: ' || SQLERRM;
+    END;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        p_result := 'BILL_OR_ACCOUNT_NOT_FOUND';
+    WHEN OTHERS THEN
+        p_result := 'ERROR: ' || SQLERRM;
+END;
+
+
+
+
+
+create or replace PROCEDURE sp_transfer_funds(
+    p_from_account_id IN NUMBER,
+    p_to_account_id IN NUMBER,
+    p_amount IN NUMBER,
+    p_description IN VARCHAR2,
+    p_transfer_type IN VARCHAR2 DEFAULT 'IMPS',
+    p_result OUT VARCHAR2
+) AS
+    v_from_balance NUMBER;
+    v_to_balance NUMBER;
+    v_transfer_id NUMBER;
+    v_ref_number VARCHAR2(50);
+BEGIN
+    -- Generate reference number
+    v_ref_number := 'FT' || TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') || p_from_account_id;
+
+    -- Check source account balance
+    SELECT balance INTO v_from_balance 
+    FROM accounts 
+    WHERE account_id = p_from_account_id AND status = 'ACTIVE';
+
+    IF v_from_balance < p_amount THEN
+        p_result := 'INSUFFICIENT_BALANCE';
+        RETURN;
+    END IF;
+
+    -- Get destination account balance
+    SELECT balance INTO v_to_balance 
+    FROM accounts 
+    WHERE account_id = p_to_account_id AND status = 'ACTIVE';
+
+    -- Start transaction
+    SAVEPOINT transfer_start;
+
+    BEGIN
+        -- Insert fund transfer record
+        INSERT INTO fund_transfers (from_account_id, to_account_id, amount, transfer_type, description, reference_number, status)
+        VALUES (p_from_account_id, p_to_account_id, p_amount, p_transfer_type, p_description, v_ref_number, 'PENDING')
+        RETURNING transfer_id INTO v_transfer_id;
+
+        -- Debit from source account
+        UPDATE accounts 
+        SET balance = balance - p_amount, updated_at = CURRENT_TIMESTAMP
+        WHERE account_id = p_from_account_id;
+
+        -- Credit to destination account
+        UPDATE accounts 
+        SET balance = balance + p_amount, updated_at = CURRENT_TIMESTAMP
+        WHERE account_id = p_to_account_id;
+
+        -- Insert debit transaction
+        INSERT INTO transactions (account_id, transaction_type, amount, description, balance_before, balance_after, reference_number, channel)
+        VALUES (p_from_account_id, 'DEBIT', p_amount, 'Fund Transfer - ' || p_description, 
+                v_from_balance, v_from_balance - p_amount, v_ref_number, 'ONLINE');
+
+        -- Insert credit transaction
+        INSERT INTO transactions (account_id, transaction_type, amount, description, balance_before, balance_after, reference_number, channel)
+        VALUES (p_to_account_id, 'CREDIT', p_amount, 'Fund Transfer - ' || p_description,
+                v_to_balance, v_to_balance + p_amount, v_ref_number, 'ONLINE');
+
+        -- Update transfer status
+        UPDATE fund_transfers 
+        SET status = 'COMPLETED' 
+        WHERE transfer_id = v_transfer_id;
+
+        COMMIT;
+        p_result := 'SUCCESS';
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK TO transfer_start;
+            p_result := 'TRANSFER_FAILED: ' || SQLERRM;
+    END;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        p_result := 'ACCOUNT_NOT_FOUND';
+    WHEN OTHERS THEN
+        p_result := 'ERROR: ' || SQLERRM;
+END;
+
+
+
+
+
+create or replace PROCEDURE UPDATE_CARD_LIMIT (
+    P_CARD_ID     IN NUMBER,
+    P_NEW_LIMIT   IN NUMBER
+)
+IS
+BEGIN
+    UPDATE CARDS
+    SET DAILY_LIMIT = P_NEW_LIMIT    -- ✅ Corrected column name
+    WHERE CARD_ID = P_CARD_ID;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        DBMS_OUTPUT.PUT_LINE('❌ Card not found.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('✅ Daily limit updated to: ' || P_NEW_LIMIT);
+    END IF;
+END;
+
+
+
+
+
+
+create or replace PROCEDURE view_account_by_id(p_account_id IN NUMBER) IS
+    v_user_id       NUMBER;
+    v_username      VARCHAR2(50);
+    v_email         VARCHAR2(100);
+    v_phone         VARCHAR2(20);
+    v_name          VARCHAR2(100);
+    v_address       VARCHAR2(200);
+    v_city          VARCHAR2(50);
+    v_dob           DATE;
+
+    v_account_type  VARCHAR2(50);
+    v_balance       NUMBER;
+    v_ifsc_code     VARCHAR2(20);
+    v_branch_name   VARCHAR2(100);
+    v_branch_code   VARCHAR2(20);
+    v_status        VARCHAR2(20);
+BEGIN
+    SELECT a.user_id, u.username, u.email, u.phone, u.name, u.address, u.city, u.dob,
+           a.account_type, a.balance, a.ifsc_code, a.branch_name, a.branch_code, a.status
+    INTO   v_user_id, v_username, v_email, v_phone, v_name, v_address, v_city, v_dob,
+           v_account_type, v_balance, v_ifsc_code, v_branch_name, v_branch_code, v_status
+    FROM   Accounts a
+    JOIN   Users u ON a.user_id = u.user_id
+    WHERE  a.account_id = p_account_id;
+
+    -- Display User Info
+    DBMS_OUTPUT.PUT_LINE('--- User Details ---');
+    DBMS_OUTPUT.PUT_LINE('User ID     : ' || v_user_id);
+    DBMS_OUTPUT.PUT_LINE('Username    : ' || v_username);
+    DBMS_OUTPUT.PUT_LINE('Email       : ' || v_email);
+    DBMS_OUTPUT.PUT_LINE('Phone       : ' || v_phone);
+    DBMS_OUTPUT.PUT_LINE('Name        : ' || v_name);
+    DBMS_OUTPUT.PUT_LINE('Address     : ' || v_address);
+    DBMS_OUTPUT.PUT_LINE('City        : ' || v_city);
+    DBMS_OUTPUT.PUT_LINE('Date of Birth : ' || TO_CHAR(v_dob, 'DD-MM-YYYY'));
+
+    -- Display Account Info
+    DBMS_OUTPUT.PUT_LINE('--- Account Details ---');
+    DBMS_OUTPUT.PUT_LINE('Account ID   : ' || p_account_id);
+    DBMS_OUTPUT.PUT_LINE('Account Type : ' || v_account_type);
+    DBMS_OUTPUT.PUT_LINE('Balance      : ₹' || v_balance);
+    DBMS_OUTPUT.PUT_LINE('IFSC Code    : ' || v_ifsc_code);
+    DBMS_OUTPUT.PUT_LINE('Branch Name  : ' || v_branch_name);
+    DBMS_OUTPUT.PUT_LINE('Branch Code  : ' || v_branch_code);
+    DBMS_OUTPUT.PUT_LINE('Status       : ' || v_status);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Account not found.');
+END;
+
+
+
+
+
+
+create or replace PROCEDURE view_account_summary(p_user_id IN NUMBER) AS
+    CURSOR acc_cursor IS
+        SELECT ACCOUNT_ID, BALANCE
+        FROM ACCOUNTS
+        WHERE USER_ID = p_user_id;
+
+    v_account_id ACCOUNTS.ACCOUNT_ID%TYPE;
+    v_balance ACCOUNTS.BALANCE%TYPE;
+BEGIN
+    OPEN acc_cursor;
+    LOOP
+        FETCH acc_cursor INTO v_account_id, v_balance;
+        EXIT WHEN acc_cursor%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE('Account ID: ' || v_account_id || ', Balance: ₹' || v_balance);
+    END LOOP;
+    CLOSE acc_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END;
+
+
+
+
+
+
+create or replace PROCEDURE VIEW_CARDS_BY_USER (
+    P_USER_ID IN NUMBER
+)
+IS
+    CURSOR CARD_CUR IS
+        SELECT CARD_ID, CARD_TYPE, CARDHOLDER_NAME, STATUS, ISSUE_DATE, EXPIRY_DATE, DAILY_LIMIT
+        FROM CARDS
+        WHERE USER_ID = P_USER_ID;
+
+    V_CARD CARD_CUR%ROWTYPE;
+BEGIN
+    OPEN CARD_CUR;
+    LOOP
+        FETCH CARD_CUR INTO V_CARD;
+        EXIT WHEN CARD_CUR%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE('CARD ID: ' || V_CARD.CARD_ID ||
+                             ', TYPE: ' || V_CARD.CARD_TYPE ||
+                             ', HOLDER: ' || V_CARD.CARDHOLDER_NAME ||
+                             ', STATUS: ' || V_CARD.STATUS ||
+                             ', ISSUED: ' || TO_CHAR(V_CARD.ISSUE_DATE, 'DD-MON-YYYY') ||
+                             ', EXPIRES: ' || TO_CHAR(V_CARD.EXPIRY_DATE, 'DD-MON-YYYY') ||
+                             ', DAILY LIMIT: ₹' || V_CARD.DAILY_LIMIT);
+    END LOOP;
+    CLOSE CARD_CUR;
+END;
+
+
+
+
+
+
+
+create or replace PROCEDURE VIEW_LOAN_OVERVIEW (
+    p_user_id IN NUMBER
+)
+IS
+    CURSOR loan_cur IS
+        SELECT LOAN_ID, LOAN_TYPE, LOAN_AMOUNT, INTEREST_RATE,
+               LOAN_DURATION, MONTHLY_EMI, OUTSTANDING_AMOUNT,
+               STATUS, NEXT_DUE_DATE, START_DATE, END_DATE
+        FROM LOANS
+        WHERE USER_ID = p_user_id;
+
+    rec loan_cur%ROWTYPE;
+    v_found BOOLEAN := FALSE;
+BEGIN
+    OPEN loan_cur;
+    LOOP
+        FETCH loan_cur INTO rec;
+        EXIT WHEN loan_cur%NOTFOUND;
+        v_found := TRUE;
+
+        DBMS_OUTPUT.PUT_LINE('----------------------------------------');
+        DBMS_OUTPUT.PUT_LINE('Loan ID         : ' || rec.LOAN_ID);
+        DBMS_OUTPUT.PUT_LINE('Loan Type       : ' || rec.LOAN_TYPE);
+        DBMS_OUTPUT.PUT_LINE('Loan Amount     : ' || rec.LOAN_AMOUNT);
+        DBMS_OUTPUT.PUT_LINE('Interest Rate   : ' || rec.INTEREST_RATE || '%');
+        DBMS_OUTPUT.PUT_LINE('Loan Duration   : ' || rec.LOAN_DURATION || ' months');
+        DBMS_OUTPUT.PUT_LINE('Monthly EMI     : ' || rec.MONTHLY_EMI);
+        DBMS_OUTPUT.PUT_LINE('Outstanding Amt : ' || rec.OUTSTANDING_AMOUNT);
+        DBMS_OUTPUT.PUT_LINE('Status          : ' || rec.STATUS);
+        DBMS_OUTPUT.PUT_LINE('Next Due Date   : ' || TO_CHAR(rec.NEXT_DUE_DATE, 'DD-MON-YYYY'));
+        DBMS_OUTPUT.PUT_LINE('Start Date      : ' || TO_CHAR(rec.START_DATE, 'DD-MON-YYYY'));
+        DBMS_OUTPUT.PUT_LINE('End Date        : ' || TO_CHAR(rec.END_DATE, 'DD-MON-YYYY'));
+        DBMS_OUTPUT.PUT_LINE('----------------------------------------');
+    END LOOP;
+
+    CLOSE loan_cur;
+
+    IF NOT v_found THEN
+        DBMS_OUTPUT.PUT_LINE('No loan records found for User ID: ' || p_user_id);
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END;
+
+
+
+
+
+
+
+create or replace PROCEDURE withdraw_amount(
+    p_account_id IN NUMBER,
+    p_amount     IN NUMBER
+) AS
+    v_balance ACCOUNTS.BALANCE%TYPE;
+BEGIN
+    SELECT BALANCE INTO v_balance FROM ACCOUNTS WHERE ACCOUNT_ID = p_account_id FOR UPDATE;
+
+    IF v_balance < p_amount THEN
+        DBMS_OUTPUT.PUT_LINE('Insufficient balance.');
+        RETURN;
+    END IF;
+
+    UPDATE ACCOUNTS
+    SET BALANCE = BALANCE - p_amount,
+        UPDATED_AT = SYSDATE
+    WHERE ACCOUNT_ID = p_account_id;
+
+    INSERT INTO TRANSACTIONS (TRANSACTION_ID, ACCOUNT_ID, AMOUNT, TRANSACTION_TYPE, CREATED_AT)
+    VALUES (TRANSACTION_SEQ.NEXTVAL, p_account_id, p_amount, 'DEBIT', SYSDATE);
+
+    DBMS_OUTPUT.PUT_LINE('Withdrawal of ₹' || p_amount || ' successful.');
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Account not found.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error withdrawing amount: ' || SQLERRM);
+END;
